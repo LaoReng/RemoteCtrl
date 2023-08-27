@@ -43,6 +43,25 @@ int main(int argc, char** argv, char** env)
 		wprintf(L"错误: GetModuleHandle 失败\n");
 		nRetCode = 1;
 	}
-	
+	if (argc == 1) {
+		CLNetworkSocket<CUDP> sock(1);
+		sock.Init("127.0.0.1", 9889);
+		std::string buf;
+		buf.resize(256);
+		sock.Recv(buf);
+		std::cout << "form client:[" << buf << "]" << std::endl;
+		sock.Send(buf);
+	}
+	else {
+		CLNetworkSocket<CUDP> sock(0);
+		sock.Init();
+		std::string buf;
+		std::cout << "请输入要发给服务器的信息：";
+		std::cin >> buf;
+		sock.Send(buf, "127.0.0.1", 9889);
+		memset((char*)buf.c_str(), 0, buf.size());
+		sock.Recv(buf);
+		std::cout << "form server:[" << buf << "]" << std::endl;
+	}
 	return nRetCode;
 }

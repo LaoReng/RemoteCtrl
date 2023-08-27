@@ -91,4 +91,44 @@ git config --global https.proxy 127.0.0.1:7890
 
 ## 网络编程模块
 
-设计预期效果：用户调用一个接口，就可以实现TCP或UDP客户端或服务器的创建
+### 设计预期效果
+
+用户调用一个接口，就可以实现TCP或UDP客户端或服务器的创建
+
+### 模板化思路（已基本实现）
+
+利用模板将两个模块（UDP/TCP）联系到一起，通过继承关系实现类的初始化
+
+### 每个模块实现思路
+
+将每部操作进行规范化，使用分支语句实现同一函数调用不同的套接字函数，使得同协议服务器和客户端的套接字创建，这一套代码就可以满足需求
+
+运用单例设计模式，将类的构造析构函数私有化，防止别人绕开我们的逻辑去创建套接字
+
+删除了类的复制构造和等号重载，防止套接字被复制多份，导致关闭套接字时产生问题
+
+#### 规范化
+
+通过分析TCP和UDP网络编程的相关步骤，将其进行规范化
+
+TCP客户端/服务器网络编程：
+
+<img src="C:\Users\lwd15\AppData\Roaming\Typora\typora-user-images\image-20230827175923218.png" alt="image-20230827175923218" style="zoom:80%;" />
+
+UDP客户端/服务器网络编程：
+
+<img src="C:\Users\lwd15\AppData\Roaming\Typora\typora-user-images\image-20230827180012485.png" alt="image-20230827180012485" style="zoom:80%;" />
+
+规范后流程：
+
+```mermaid
+graph TD;
+	A["TCP/UDP 客户端/服务端"] --> B["初始化"]
+	B --> C["等待连接/连接服务端"]
+	C --> D["接收数据"]
+	D --> E["发送数据"]
+	E --> D
+	E --> F["关闭套接字"]
+```
+
+相关代码在.\RemoteCtrl\RemoteCtrl\CLNetworkSocket.cpp和.\RemoteCtrl\RemoteCtrl\CLNetworkSocket.h文件中
