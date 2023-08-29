@@ -5,6 +5,7 @@
 #include "framework.h"
 #include "RemoteCtrl.h"
 #include "CLNetworkSocket.h"
+#include "CLPackage.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -43,7 +44,7 @@ int main(int argc, char** argv, char** env)
 		wprintf(L"错误: GetModuleHandle 失败\n");
 		nRetCode = 1;
 	}
-	if (argc == 1) {
+	/*if (argc == 1) {
 		CLNetworkSocket<CUDP> sock(1);
 		sock.Init("127.0.0.1", 9889);
 		std::string buf;
@@ -62,6 +63,14 @@ int main(int argc, char** argv, char** env)
 		memset((char*)buf.c_str(), 0, buf.size());
 		sock.Recv(buf);
 		std::cout << "form server:[" << buf << "]" << std::endl;
+	}*/
+	//WM_LBUTTONDOWN //鼠标宏
+	for (int i = 0; i < 100; i++) {
+		SetCursorPos(i, i); // 设置鼠标位置
+		//mouse_event 设置鼠标按下抬起函数
+		//SendInput 鼠标键盘输入
+		Sleep(20);
 	}
+	sizeof(CLPackage);
 	return nRetCode;
 }
