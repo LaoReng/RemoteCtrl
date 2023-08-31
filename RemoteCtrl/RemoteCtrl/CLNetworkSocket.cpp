@@ -16,6 +16,7 @@ CTCP::CTCP(int isServer)
 }
 CTCP::~CTCP()
 {
+	CloseJointSock();
 	Close();
 	WSACleanup();
 }

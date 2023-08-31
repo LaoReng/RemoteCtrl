@@ -48,6 +48,7 @@ public:
 	// 初始化，若为服务端则会进行地址的绑定
 	int Init(const std::string& ip = "", const short port = 0);
 	// 等待连接/连接服务器
+	// ltNum: listen连接队列最大长度(用于服务器)，ip: 连接服务器的地址(用于客户端)，port: 连接服务器的端口(用于客户端)
 	SOCKET Joint(int ltNum = 0, const std::string& ip = "", const short port = 0);
 	// 接收数据
 	int Recv(std::string& buffer);

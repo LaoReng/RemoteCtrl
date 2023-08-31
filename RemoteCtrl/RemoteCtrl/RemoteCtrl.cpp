@@ -4,8 +4,7 @@
 #include "pch.h"
 #include "framework.h"
 #include "RemoteCtrl.h"
-#include "CLNetworkSocket.h"
-#include "CLPackage.h"
+
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -71,6 +70,5 @@ int main(int argc, char** argv, char** env)
 		//SendInput 鼠标键盘输入
 		Sleep(20);
 	}
-	sizeof(CLPackage);
 	return nRetCode;
 }

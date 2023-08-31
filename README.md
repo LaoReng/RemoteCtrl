@@ -152,3 +152,20 @@ graph TD;
 ```
 
 相关代码在.\RemoteCtrl\RemoteCtrl\CLNetworkSocket.cpp和.\RemoteCtrl\RemoteCtrl\CLNetworkSocket.h文件中
+
+## 服务器
+
+本服务器与客户端建立的为短时链接即当客户端连接上来并请求执行特定指令时，当指令执行完服务器会主动与客户端断开连接
+
+### 服务器命令处理流程图
+
+```mermaid
+graph TD;
+	A["启动服务器套接字"] --> B["等待客户端连接"]
+	B --> C["接收并处理数据"]
+	C --> D["响应及应答数据"]
+	D --> E["关闭客户端套接字"]
+	E --> B
+	E --> F["关闭服务器套接字"]
+```
+

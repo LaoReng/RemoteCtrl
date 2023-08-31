@@ -39,6 +39,9 @@
     <ClInclude Include="CLPackage.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="CLComDispose.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="RemoteCtrl.cpp">
@@ -54,6 +57,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="CLPackage.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="CLComDispose.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

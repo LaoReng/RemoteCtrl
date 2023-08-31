@@ -155,6 +155,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="CLComDispose.h" />
     <ClInclude Include="CLNetworkSocket.h" />
     <ClInclude Include="CLPackage.h" />
     <ClInclude Include="CLTools.h" />
@@ -165,6 +166,7 @@
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="CLComDispose.cpp" />
     <ClCompile Include="CLNetworkSocket.cpp" />
     <ClCompile Include="CLPackage.cpp" />
     <ClCompile Include="CLTools.cpp" />
