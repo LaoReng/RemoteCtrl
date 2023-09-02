@@ -169,3 +169,53 @@ graph TD;
 	E --> F["关闭服务器套接字"]
 ```
 
+### 文件功能
+
+#### 获取卷
+
+通过[FindFirstVolume()](https://learn.microsoft.com/zh-cn/windows/win32/api/winbase/nf-winbase-findfirstvolumea?devlangs=cpp&f1url=%3FappId%3DDev16IDEF1%26l%3DZH-CN%26k%3Dk(WINBASE%252FFindFirstVolumeA)%3Bk(FindFirstVolumeA)%3Bk(DevLang-C%252B%252B)%3Bk(TargetOS-Windows)%26rd%3Dtrue)、[GetVolumePathNamesForVolumeName()](https://learn.microsoft.com/zh-cn/windows/win32/api/winbase/nf-winbase-getvolumepathnamesforvolumenamea?devlangs=cpp&f1url=%3FappId%3DDev16IDEF1%26l%3DZH-CN%26k%3Dk(WINBASE%252FGetVolumePathNamesForVolumeNameA)%3Bk(GetVolumePathNamesForVolumeNameA)%3Bk(DevLang-C%252B%252B)%3Bk(TargetOS-Windows)%26rd%3Dtrue)、[FindNextVolume()](https://learn.microsoft.com/zh-cn/windows/win32/api/winbase/nf-winbase-findnextvolumea?devlangs=cpp&f1url=%3FappId%3DDev16IDEF1%26l%3DZH-CN%26k%3Dk(WINBASE%252FFindNextVolumeA)%3Bk(FindNextVolumeA)%3Bk(DevLang-C%252B%252B)%3Bk(TargetOS-Windows)%26rd%3Dtrue)、[FindVolumeClose()](https://learn.microsoft.com/zh-cn/windows/win32/api/fileapi/nf-fileapi-findvolumeclose?devlangs=cpp&f1url=%3FappId%3DDev16IDEF1%26l%3DZH-CN%26k%3Dk(FILEAPI%252FFindVolumeClose)%3Bk(FindVolumeClose)%3Bk(DevLang-C%252B%252B)%3Bk(TargetOS-Windows)%26rd%3Dtrue)等函数实现
+
+流程图：
+
+```mermaid
+graph TD;
+	A["FindFirstVolume()"] --> B["GetVolumePathNamesForVolumeName()"]
+	B --> C["FindNextVolume"]
+	C --> B
+	C --> D["FindVolumeClose"]
+```
+
+#### 获取文件
+
+通过[FindFirstFile()](https://learn.microsoft.com/zh-cn/windows/win32/api/fileapi/nf-fileapi-findfirstfilea?devlangs=cpp&f1url=%3FappId%3DDev16IDEF1%26l%3DZH-CN%26k%3Dk(FILEAPI%252FFindFirstFileA)%3Bk(FindFirstFileA)%3Bk(DevLang-C%252B%252B)%3Bk(TargetOS-Windows)%26rd%3Dtrue)、[FindNextFile()](https://learn.microsoft.com/zh-cn/windows/win32/api/fileapi/nf-fileapi-findnextfilea?devlangs=cpp&f1url=%3FappId%3DDev16IDEF1%26l%3DZH-CN%26k%3Dk(FILEAPI%252FFindNextFileA)%3Bk(FindNextFileA)%3Bk(DevLang-C%252B%252B)%3Bk(TargetOS-Windows)%26rd%3Dtrue)、[FindClose()](https://learn.microsoft.com/zh-cn/windows/win32/api/fileapi/nf-fileapi-findclose?devlangs=cpp&f1url=%3FappId%3DDev16IDEF1%26l%3DZH-CN%26k%3Dk(FILEAPI%252FFindClose)%3Bk(FindClose)%3Bk(DevLang-C%252B%252B)%3Bk(TargetOS-Windows)%26rd%3Dtrue)等函数实现
+
+流程图：
+
+```mermaid
+graph TD;
+	A["FindFirstFile()"] --> B["FindNextFile"]
+	B --> B
+	B --> C["FindClose"]
+```
+
+### 系统锁定/解锁功能
+
+#### 锁定
+
+通过开线程的方式进行系统上锁，最终状态使鼠标键盘不能使用，在屏幕上显示系统已锁定字样
+
+#### 解锁
+
+解锁则是模拟键盘向锁定线程发送消息，线程响应消息达到解锁的目的
+
+## 遇到的错误及解决方法
+
+### 添加资源（对话框等）遇到的问题
+
+问题描述：在资源添加完成以后，编译的时候报错：error C2504: “CDialogEx”: 未定义基类
+
+<img src="C:\Users\lwd15\AppData\Roaming\Typora\typora-user-images\image-20230902182625598.png" alt="image-20230902182625598" style="zoom:80%;" />
+
+问题分析：不是咱们创建的类，出现这种错误，大概的原因就是由于缺少头文件导致的
+
+问题解决：在pch.h文件中，添加<afxcontrolbars.h>头文件，问题就解决了

@@ -11,4 +11,6 @@
 #include "framework.h"
 #include <iostream>
 #include "CLTools.h"
+#include <afxcontrolbars.h> // 少头文件报错
+#include "resource.h"
 #endif //PCH_H

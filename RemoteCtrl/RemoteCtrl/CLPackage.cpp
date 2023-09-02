@@ -172,3 +172,20 @@ void CLPackage::SetPAdd()
 	m_PAdd = sum;
 	m_PackIsChange = 1;
 }
+
+fileInfo::fileInfo(const char* filename, BOOL isdir, BOOL ishidden, BOOL islast)
+{
+	memcpy(m_fileName, filename, strlen(filename));
+	m_isDir = isdir;
+	m_isHidden = ishidden;
+	m_isLast = islast;
+}
+
+const char* fileInfo::operator&()
+{
+	m_strFileInfo += m_fileName;
+	m_strFileInfo += m_isDir;
+	m_strFileInfo += m_isHidden;
+	m_strFileInfo += m_isLast;
+	return m_strFileInfo.c_str();
+}

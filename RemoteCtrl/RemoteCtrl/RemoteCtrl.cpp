@@ -4,7 +4,7 @@
 #include "pch.h"
 #include "framework.h"
 #include "RemoteCtrl.h"
-
+#include "CLComDispose.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -63,12 +63,19 @@ int main(int argc, char** argv, char** env)
 		sock.Recv(buf);
 		std::cout << "form server:[" << buf << "]" << std::endl;
 	}*/
+	/*
 	//WM_LBUTTONDOWN //鼠标宏
 	for (int i = 0; i < 100; i++) {
 		SetCursorPos(i, i); // 设置鼠标位置
 		//mouse_event 设置鼠标按下抬起函数
 		//SendInput 鼠标键盘输入
 		Sleep(20);
-	}
-	return nRetCode;
+	}*/
+	//ClipCursor禁止鼠标移动函数
+	CLComDispose comDis;
+	comDis.systemLock();
+	//
+	Sleep(5000);
+	comDis.systemUnlock();
+	WaitForSingleObject(comDis.m_hLockThread, INFINITE);
 }

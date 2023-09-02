@@ -3,12 +3,26 @@
 #include <vector>
 
 #pragma pack(push,1) // 设置内存对齐方式，将对齐系数进栈
+
+typedef struct fileInfo
+{
+	char m_fileName[MAX_PATH] = "";
+	BOOL m_isDir = FALSE;
+	BOOL m_isHidden = FALSE;
+	BOOL m_isLast = TRUE;
+	std::string m_strFileInfo;
+	fileInfo() :m_fileName(""), m_isDir(FALSE), m_isHidden(FALSE), m_isLast(TRUE) {}
+	fileInfo(const char* filename, BOOL isdir, BOOL ishidden, BOOL islast);
+	const char* operator&();
+}FILEINFO;
+
+
 class CLPackage
 {
 public:
 	CLPackage();
 	// 封装
-	CLPackage(unsigned short cmd,const char* data = "");
+	CLPackage(unsigned short cmd, const char* data = "");
 	// 解封装
 	CLPackage(char* buffer, size_t size);
 	// 复制构造
