@@ -41,7 +41,7 @@ public:
 	void getDrive();
 	// 获取文件响应函数
 	void getFile();
-	// 文件加载响应函数
+	// 文件下载响应函数
 	void fileDownload();
 	// 文件上传响应函数
 	void fileUpload();
@@ -59,12 +59,11 @@ private:
 	// 锁定线程主函数
 	void sysLockThreadMain();
 private:
-	CLNetworkSocket<CTCP> m_sock;    // 网络套接字
-	CLPackage             m_pack;    // 保存接收或发送的包数据
-	std::string           m_buffer;  // 接收客户端消息的缓冲区
-	CLSysLockDialog       m_lockDlg; // 系统锁定窗口
-public:
-	UINT  m_lockThreadID; // 系统锁定线程ID
-	HANDLE m_hLockThread; // 系统锁定线程句柄
+	CLNetworkSocket<CTCP> m_sock;         // 网络套接字
+	CLPackage             m_pack;         // 保存接收或发送的包数据
+	std::string           m_buffer;       // 接收客户端消息的缓冲区
+	CLSysLockDialog       m_lockDlg;      // 系统锁定窗口对象
+	UINT                  m_lockThreadID; // 系统锁定线程ID
+	HANDLE                m_hLockThread;  // 系统锁定线程句柄
 };
 

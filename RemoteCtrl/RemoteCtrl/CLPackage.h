@@ -38,6 +38,8 @@ public:
 	unsigned short GetCmd() const;
 	// 获取包中数据部分
 	const char* GetData() const;
+	// 获取包中数据部分大小
+	size_t GetDataSize() const;
 	// 字符串化
 	const char* Str();
 private:

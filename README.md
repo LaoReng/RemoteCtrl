@@ -169,7 +169,7 @@ graph TD;
 	E --> F["关闭服务器套接字"]
 ```
 
-### 文件功能
+### 文件查看功能
 
 #### 获取卷
 
@@ -180,9 +180,9 @@ graph TD;
 ```mermaid
 graph TD;
 	A["FindFirstVolume()"] --> B["GetVolumePathNamesForVolumeName()"]
-	B --> C["FindNextVolume"]
+	B --> C["FindNextVolume()"]
 	C --> B
-	C --> D["FindVolumeClose"]
+	C --> D["FindVolumeClose()"]
 ```
 
 #### 获取文件
@@ -193,9 +193,38 @@ graph TD;
 
 ```mermaid
 graph TD;
-	A["FindFirstFile()"] --> B["FindNextFile"]
+	A["FindFirstFile()"] --> B["FindNextFile()"]
 	B --> B
-	B --> C["FindClose"]
+	B --> C["FindClose()"]
+```
+
+### 文件下载/上传功能
+
+#### 下载
+
+对于控制端来说，下载就是把被控端上存在的文件下载到本地
+
+文件读取流程图：
+
+```mermaid
+graph TD;
+	A["CreateFile()"] --> B["GetFileSize()"]
+	B --> C["ReadFile()"]
+	C --> C
+	C --> D["CloseHandle()"]
+```
+
+#### 上传
+
+对于控制端来说，上传就是将本地上存在的文件上传到被控端电脑上
+
+文件写入流程图：
+
+```mermaid
+graph TD;
+	A["CreateFile()"] --> B["WriteFile()"]
+	B --> B
+	B --> C["CloseHandle()"]
 ```
 
 ### 系统锁定/解锁功能

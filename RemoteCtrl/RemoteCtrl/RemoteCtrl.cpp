@@ -72,10 +72,4 @@ int main(int argc, char** argv, char** env)
 		Sleep(20);
 	}*/
 	//ClipCursor禁止鼠标移动函数
-	CLComDispose comDis;
-	comDis.systemLock();
-	//
-	Sleep(5000);
-	comDis.systemUnlock();
-	WaitForSingleObject(comDis.m_hLockThread, INFINITE);
 }

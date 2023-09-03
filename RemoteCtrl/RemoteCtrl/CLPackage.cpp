@@ -143,6 +143,11 @@ const char* CLPackage::GetData() const
 	return *m_PData;
 }
 
+size_t CLPackage::GetDataSize() const
+{
+	return m_PDataSize;
+}
+
 const char* CLPackage::Str()
 {
 	if (m_PackIsChange) {

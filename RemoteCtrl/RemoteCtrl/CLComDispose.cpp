@@ -3,7 +3,9 @@
 
 
 CLComDispose::CLComDispose()
-	:m_sock(1)
+	: m_sock(1)
+	, m_lockThreadID(0)
+	, m_hLockThread(INVALID_HANDLE_VALUE)
 {
 	m_buffer.resize(MAX_BUFFER);
 	m_sock.Init("127.0.0.1", 7968);
@@ -18,7 +20,6 @@ void CLComDispose::Accept()
 		m_sock.Joint(4);
 		Recv();
 		ComDis();
-		//Send();
 		m_sock.CloseJointSock();
 	}
 }
@@ -83,6 +84,9 @@ int CLComDispose::Send()
 
 void CLComDispose::testConnect()
 {
+	if (Send() < 0) {
+		CLTools::ErrorOut("testConnect send error!", __FILE__, __LINE__);
+	}
 }
 
 void CLComDispose::userLogin()
@@ -99,6 +103,9 @@ void CLComDispose::getDrive()
 	if (FindDriHandle == INVALID_HANDLE_VALUE) {
 		CLTools::ErrorOut("磁盘获取失败！", __FILE__, __LINE__);
 		m_pack = CLPackage(COM_GETDRIVE, "");
+		if (Send() < 0) {
+			CLTools::ErrorOut("getDrive send error!", __FILE__, __LINE__);
+		}
 		return;
 	}
 	do {
@@ -106,7 +113,7 @@ void CLComDispose::getDrive()
 		size_t index = strlen(VolumeName) - 1;
 		if (!VolumeFormat(VolumeName, "\\\\?\\") || VolumeName[index] != '\\') {
 			CLTools::ErrorOut("磁盘获取失败！", __FILE__, __LINE__);
-			m_pack = CLPackage(COM_GETDRIVE, "");
+			DriInfo.clear();
 			break;
 		}
 		char driveName[MAX_PATH] = "";
@@ -118,20 +125,23 @@ void CLComDispose::getDrive()
 		memset(VolumeName, 0, sizeof(VolumeName));
 		ret = FindNextVolume(FindDriHandle, VolumeName, sizeof(VolumeName));
 	} while (ret);
-	len = GetLastError();
-	if (len != ERROR_NO_MORE_FILES) {
+	if (GetLastError() != ERROR_NO_MORE_FILES || DriInfo.size() < 1) {
 		CLTools::ErrorOut("磁盘获取失败！", __FILE__, __LINE__);
 		m_pack = CLPackage(COM_GETDRIVE, "");
-		FindVolumeClose(FindDriHandle);
 		return;
 	}
-	m_pack = CLPackage(COM_GETDRIVE, DriInfo.c_str());
+	else {
+		m_pack = CLPackage(COM_GETDRIVE, DriInfo.c_str());
+	}
 	FindVolumeClose(FindDriHandle);
+	if (Send() < 0) {
+		CLTools::ErrorOut("getDrive send error!", __FILE__, __LINE__);
+	}
 }
 
 void CLComDispose::getFile()
 {
-	std::string dir = m_pack.GetData();dir += '*';
+	std::string dir = m_pack.GetData(); dir += '*';
 	WIN32_FIND_DATA fileInfo = {};
 	std::string strFileInfos;
 	BOOL ret = FALSE;
@@ -140,6 +150,9 @@ void CLComDispose::getFile()
 		CLTools::ErrorOut("文件夹打开失败！", __FILE__, __LINE__);
 		FILEINFO fileinfo;
 		m_pack = CLPackage(COM_GETFILE, &fileinfo);
+		if (Send() < 0) {
+			CLTools::ErrorOut("getFile send error!", __FILE__, __LINE__);
+		}
 		return;
 	}
 	do {
@@ -148,26 +161,114 @@ void CLComDispose::getFile()
 		strFileInfos += ',';
 		ret = FindNextFile(findFileHandle, &fileInfo);
 		if (strFileInfos.size() > 800) {
-			// TODO:封包，Send发送回去
 			m_pack = CLPackage(COM_GETFILE, strFileInfos.c_str());
+			if (Send() < 0) {
+				CLTools::ErrorOut("getFile send error!", __FILE__, __LINE__);
+			}
 			strFileInfos.clear();
 		}
 	} while (ret);
 	if (GetLastError() != ERROR_NO_MORE_FILES) {
 		CLTools::ErrorOut("文件夹读取失败！", __FILE__, __LINE__);
 	}
+	FindClose(findFileHandle);
 	FILEINFO fileinfo;
 	strFileInfos += &fileinfo;
 	m_pack = CLPackage(COM_GETFILE, strFileInfos.c_str());
-	FindClose(findFileHandle);
+	if (Send() < 0) {
+		CLTools::ErrorOut("getFile send error!", __FILE__, __LINE__);
+	}
 }
 
 void CLComDispose::fileDownload()
 {
+	HANDLE hFile = CreateFile(m_pack.GetData(), GENERIC_READ, FILE_SHARE_DELETE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+	if (hFile == INVALID_HANDLE_VALUE) {
+		CLTools::ErrorOut("文件打开失败！", __FILE__, __LINE__);
+		m_pack = CLPackage(COM_FILEDOWNLOAD);
+		if (Send() < 0) {
+			CLTools::ErrorOut("fileDownload send error!", __FILE__, __LINE__);
+		}
+		return;
+	}
+	DWORD FileSize = GetFileSize(hFile, NULL);
+	if (FileSize == INVALID_FILE_SIZE) {
+		CloseHandle(hFile);
+		CLTools::ErrorOut("文件大小获取失败！", __FILE__, __LINE__);
+		m_pack = CLPackage(COM_FILEDOWNLOAD);
+		if (Send() < 0) {
+			CLTools::ErrorOut("fileDownload send error!", __FILE__, __LINE__);
+		}
+		return;
+	}
+	char buffer[1000] = ""; // 文件数据缓冲区
+	DWORD RLen = {};        // ReadFile() 读取到的数据大小
+	// 发送文件的大小
+	m_pack = CLPackage(COM_FILEDOWNLOAD, _ultoa(FileSize, buffer, 10));
+	if (Send() < 0) {
+		CLTools::ErrorOut("fileDownload send error!", __FILE__, __LINE__);
+	}
+	do {
+		memset(buffer, 0, sizeof(buffer));
+		if (FALSE == ReadFile(hFile, buffer, sizeof(buffer), &RLen, NULL)) {
+			CLTools::ErrorOut("文件读取失败！", __FILE__, __LINE__);
+			break;
+		}
+		m_pack = CLPackage(COM_FILEDOWNLOAD, buffer);
+		if (Send() < 0) {
+			CLTools::ErrorOut("fileDownload send error!", __FILE__, __LINE__);
+		}
+		FileSize -= RLen;
+	} while (FileSize > 0);
+	CloseHandle(hFile);
 }
 
 void CLComDispose::fileUpload()
 {
+	//TODO:这块还有一个问题：需要创建一个文件夹存放控制端发过来的文件
+	HANDLE hNewFile = CreateFile(m_pack.GetData(), GENERIC_ALL, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+	if (hNewFile == INVALID_HANDLE_VALUE) {
+		CLTools::ErrorOut("文件创建失败！", __FILE__, __LINE__);
+		m_pack = CLPackage(COM_FILEUPLOAD);
+		if (Send() < 0) {
+			CLTools::ErrorOut("fileUpload send error!", __FILE__, __LINE__);
+		}
+		return;
+	}
+	DWORD FileSize = {};
+	Recv();
+	if (m_pack.GetCmd() == COM_FILEUPLOAD) {
+		char* endptr = NULL;
+		FileSize = strtoul(m_pack.GetData(), &endptr, 10);
+		if (FileSize == INVALID_FILE_SIZE) {
+			CloseHandle(hNewFile);
+			CLTools::ErrorOut("文件大小获取失败！", __FILE__, __LINE__);
+			m_pack = CLPackage(COM_FILEUPLOAD);
+			if (Send() < 0) {
+				CLTools::ErrorOut("fileUpload send error!", __FILE__, __LINE__);
+			}
+			return;
+		}
+	}
+	DWORD WriteLen = {};
+	do {
+		Recv();
+		if (m_pack.GetCmd() != COM_FILEUPLOAD) {
+			break;
+		}
+		DWORD DataSize = (DWORD)m_pack.GetDataSize();
+		WriteFile(hNewFile, m_pack.GetData(), DataSize, &WriteLen, NULL);
+		if (WriteLen != DataSize) {
+			CLTools::ErrorOut("文件写入出错！", __FILE__, __LINE__);
+			break;
+		}
+		FileSize -= WriteLen;
+	} while (FileSize > 0);
+	CloseHandle(hNewFile);
+	m_pack = CLPackage(COM_FILEUPLOAD, "ok");
+	if (Send() < 0) {
+		CLTools::ErrorOut("fileUpload send error!", __FILE__, __LINE__);
+	}
 }
 
 void CLComDispose::remoteDesktop()
@@ -177,12 +278,19 @@ void CLComDispose::remoteDesktop()
 void CLComDispose::systemLock()
 {
 	m_hLockThread = (HANDLE)_beginthreadex(NULL, 0, sysLockThread, this, 0, &m_lockThreadID);
+	m_pack = CLPackage(COM_SYSTEMLOCK, "ok");
+	if (Send() < 0) {
+		CLTools::ErrorOut("systemLock send error!", __FILE__, __LINE__);
+	}
 }
 
 void CLComDispose::systemUnlock()
 {
-	PostThreadMessage(m_lockThreadID, WM_KEYDOWN, 0x41, 0x001E0001);
-	PostMessage((HWND)m_lockThreadID, WM_KEYDOWN, 0x41, 0x001E0001);
+	PostThreadMessage(m_lockThreadID, WM_KEYDOWN, 0x4C, 0);
+	m_pack = CLPackage(COM_SYSTEMUNLOCK, "ok");
+	if (Send() < 0) {
+		CLTools::ErrorOut("systemUnlock send error!", __FILE__, __LINE__);
+	}
 }
 
 BOOL CLComDispose::VolumeFormat(const char* volumename, const char* format)
@@ -227,7 +335,7 @@ void CLComDispose::sysLockThreadMain()
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
 		if (msg.message == WM_KEYDOWN) {
-			if (msg.wParam == 0x41) {
+			if (msg.wParam == 0x4C) {
 				break;
 			}
 		}
