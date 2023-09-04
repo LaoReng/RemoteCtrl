@@ -273,6 +273,39 @@ void CLComDispose::fileUpload()
 
 void CLComDispose::remoteDesktop()
 {
+	CImage image;
+	RECT rect = {};
+	HDC hDC = ::GetDC(NULL); // 获取桌面DC
+	if (::GetWindowRect(GetDesktopWindow(), &rect) == FALSE) { // 获取桌面宽高比
+		CLTools::ErrorOut("屏幕大小获取失败！", __FILE__, __LINE__);
+		return;
+	}
+	image.Create(rect.right, rect.bottom, GetDeviceCaps(hDC, BITSPIXEL)/*获取屏幕BPP*/);
+	BOOL ret = BitBlt(image.GetDC(), rect.left, rect.top, rect.right, rect.bottom, hDC, 0, 0, SRCCOPY);
+	image.ReleaseDC();
+	if (ret) {
+		HGDIOBJ memOb = NULL;
+		if (memOb = GlobalAlloc(GMEM_MOVEABLE, 0)) { // 申请大小可变缓冲区
+			IStream* pStream = NULL;
+			if (CreateStreamOnHGlobal(memOb, TRUE, &pStream) == S_OK) { // 将缓冲区与输入流绑定
+				image.Save(pStream, Gdiplus::ImageFormatPNG); // 将图片保存在缓冲区中
+				LARGE_INTEGER move = {};
+				pStream->Seek(move, STREAM_SEEK_SET, NULL); // 流指针移到开头
+				PBYTE pData = NULL;
+				if (pData = (PBYTE)GlobalLock(memOb)) { // 锁定缓冲区，并获取缓冲区数据的首地址
+					size_t DataSize = GlobalSize(memOb); // 获取缓冲区数据大小
+					m_pack = CLPackage(COM_REMOTEDESKTOP, (char*)pData);
+					if (Send() < 0) {
+						CLTools::ErrorOut("remoteDesktop send error!", __FILE__, __LINE__);
+					}
+					GlobalUnlock(memOb);
+				}
+			}
+			GlobalFree(memOb);
+		}
+	}
+	image.Destroy();
+
 }
 
 void CLComDispose::systemLock()

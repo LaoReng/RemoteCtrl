@@ -22,7 +22,7 @@ class CLPackage
 public:
 	CLPackage();
 	// 封装
-	CLPackage(unsigned short cmd, const char* data = "");
+	CLPackage(unsigned short cmd, const char* data = "",size_t dataSize = 0);
 	// 解封装
 	CLPackage(char* buffer, size_t size);
 	// 复制构造

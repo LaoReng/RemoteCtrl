@@ -12,17 +12,18 @@ CLPackage::CLPackage()
 	SetPAdd();
 }
 
-CLPackage::CLPackage(unsigned short cmd, const char* data)
+CLPackage::CLPackage(unsigned short cmd, const char* data, size_t dataSize)
 	: m_PHead(0xFEFF)
 	, m_PCmd(cmd)
 	, m_PData(NULL)
-	, m_PDataSize(0)
+	, m_PDataSize(dataSize)
 	, m_PackIsChange(1)
 {
 	if (data) {
-		m_PDataSize = strlen(data) + 1;
-		m_PData = std::make_shared<char*>(new char[m_PDataSize] { 0 });
-		memcpy(*m_PData, data, m_PDataSize - 1);
+		if (!dataSize)
+			m_PDataSize = strlen(data);
+		m_PData = std::make_shared<char*>(new char[m_PDataSize + 1]{ 0 });
+		memcpy(*m_PData, data, m_PDataSize);
 	}
 	SetPLen();
 	SetPAdd();
