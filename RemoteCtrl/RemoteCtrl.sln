@@ -7,6 +7,13 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RemoteCtrlClient", "RemoteC
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RemoteCtrl", "RemoteCtrl\RemoteCtrl.vcxproj", "{2DDBE920-5877-4728-B8D4-759EC2E98627}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{D6456A3B-BF63-4F37-BAF2-A9E9CB12A7EB}"
+	ProjectSection(SolutionItems) = preProject
+		..\README.md = ..\README.md
+		..\远控功能.xmind = ..\远控功能.xmind
+		..\项目流程图.eddx = ..\项目流程图.eddx
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64

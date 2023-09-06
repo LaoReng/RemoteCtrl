@@ -253,6 +253,10 @@ graph TD;
 
 #### 键盘输入
 
+## 客户端
+
+
+
 ## 遇到的错误及解决方法
 
 ### 添加资源（对话框等）遇到的问题
@@ -264,3 +268,19 @@ graph TD;
 问题分析：不是咱们创建的类，出现这种错误，大概的原因就是由于缺少头文件导致的
 
 问题解决：在pch.h文件中，添加<afxcontrolbars.h>头文件，问题就解决了
+
+### MFC模态和非模态对话框创建问题
+
+**非模态对话框通过Create()和ShowWindow()创建和显示**
+
+**模态对话框直接通过DoModal()就可以**
+
+**千万不要有混合，比如在创建模态对话框时调用了Create()或者ShowWindow()函数，则调用DoModal时就会出现错误**
+
+问题描述：在调用DoModal()创建模态对话框时出现错误
+
+<img src="C:\Users\lwd15\AppData\Roaming\Typora\typora-user-images\image-20230905164116767.png" alt="image-20230905164116767" style="zoom:80%;" />
+
+问题分析：在调用DoModal之前，该项目调用了该对象的Create()或ShowWindow()，导致的这种错误
+
+问题解决：将该对象调用的Create()或ShowWindow()函数注释掉就解决了

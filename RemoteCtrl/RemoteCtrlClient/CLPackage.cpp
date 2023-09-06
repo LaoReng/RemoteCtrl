@@ -156,18 +156,23 @@ const char* CLPackage::Str()
 {
 	if (m_PackIsChange) {
 		m_strPackage.clear();
-		m_strPackage += Value2BinStr(m_PHead, sizeof(m_PHead));
+		/*m_strPackage += Value2BinStr(m_PHead, sizeof(m_PHead));
 		m_strPackage += Value2BinStr(m_PCmd, sizeof(m_PCmd));
 		m_strPackage += Value2BinStr(m_PLength, sizeof(m_PLength));
-		m_strPackage += Value2BinStr(m_PAdd, sizeof(m_PAdd));
-		/* //第二种实现方法
+		m_strPackage += Value2BinStr(m_PAdd, sizeof(m_PAdd));*/
+		//第二种实现方法
 		size_t index = 0;
 		size_t bitAllSize = BITSIZE(m_PHead) + BITSIZE(m_PCmd) + BITSIZE(m_PLength) + BITSIZE(m_PAdd);
 		m_strPackage.resize(bitAllSize);
-		memcpy((char*)m_strPackage.c_str() + index, Value2BinStr(m_PHead, sizeof(m_PHead)), BITSIZE(m_PHead)); index += BITSIZE(m_PHead);
-		memcpy((char*)m_strPackage.c_str() + index, Value2BinStr(m_PCmd, sizeof(m_PCmd)), BITSIZE(m_PCmd)); index += BITSIZE(m_PCmd);
-		memcpy((char*)m_strPackage.c_str() + index, Value2BinStr(m_PLength, sizeof(m_PLength)), BITSIZE(m_PLength)); index += BITSIZE(m_PLength);
-		memcpy((char*)m_strPackage.c_str() + index, Value2BinStr(m_PAdd, sizeof(m_PAdd)), BITSIZE(m_PAdd)); index += BITSIZE(m_PAdd);*/
+		char* strPtr = (char*)m_strPackage.c_str();
+		strPtr[0] = ((unsigned char*)&m_PHead)[0];
+		strPtr[1] = ((unsigned char*)&m_PHead)[1];
+		//memcpy(strPtr + index, Value2BinStr(m_PHead, sizeof(m_PHead)), BITSIZE(m_PHead)); 
+		/*index += BITSIZE(m_PHead);
+		memcpy(strPtr + index, Value2BinStr(m_PCmd, sizeof(m_PCmd)), BITSIZE(m_PCmd)); index += BITSIZE(m_PCmd);
+		memcpy(strPtr + index, Value2BinStr(m_PLength, sizeof(m_PLength)), BITSIZE(m_PLength)); index += BITSIZE(m_PLength);
+		memcpy(strPtr + index, Value2BinStr(m_PAdd, sizeof(m_PAdd)), BITSIZE(m_PAdd)); index += BITSIZE(m_PAdd);*/
+		unsigned short phead = *(unsigned short*)strPtr;
 		if (m_PDataSize)
 			m_strPackage += *m_PData;
 		m_PackIsChange = FALSE;
@@ -194,11 +199,14 @@ void CLPackage::SetPAdd()
 const char* CLPackage::Value2BinStr(unsigned int value, unsigned char ByteSize)
 {
 	const int BitSize = ByteSize * 8;
+	
 	char buf[125] = "";
 	_ultoa(value, buf, 2);
 	size_t size = strlen(buf), index = 0;
+	for (int i = 0; i < size; i++)
+		buf[i] -= '0';
 	if (size != BitSize) {
-		memset(buf + size, '0', BitSize - size);
+		memset(buf + size, 0, BitSize - size);
 		memcpy(buf + BitSize, buf, size);
 		index = size;
 	}

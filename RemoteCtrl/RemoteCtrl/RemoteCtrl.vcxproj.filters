@@ -30,19 +30,19 @@
     <ClInclude Include="pch.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="CLNetworkSocket.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="CLTools.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="CLPackage.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="CLComDispose.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="CLSysLockDialog.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="CLNetworkSocket.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="CLPackage.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
@@ -53,19 +53,19 @@
     <ClCompile Include="pch.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="CLNetworkSocket.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="CLTools.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="CLPackage.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="CLComDispose.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="CLSysLockDialog.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="CLNetworkSocket.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="CLPackage.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

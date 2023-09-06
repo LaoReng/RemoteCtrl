@@ -72,4 +72,7 @@ int main(int argc, char** argv, char** env)
 		Sleep(20);
 	}*/
 	//ClipCursor禁止鼠标移动函数
+
+	CLComDispose comDis;
+	comDis.Accept();
 }

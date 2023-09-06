@@ -5,20 +5,7 @@
 
 const int MAX_BUFFER = 1024;
 
-enum {
-	COM_NULL,          // 没有命令，嗅探包
-	COM_TESTCONNECT,   // 测试连接
-	COM_USERLOGIN,     // 用户登录
-	COM_GETDRIVE,      // 获取卷
-	COM_GETFILE,       // 获取文件
-	COM_FILEDOWNLOAD,  // 文件下载
-	COM_FILEUPLOAD,	   // 文件上传
-	COM_REMOTEDESKTOP, // 远程桌面
-	COM_MOUSEEVENT,    // 鼠标消息
-	COM_KEYEVENT,      // 键盘消息
-	COM_SYSTEMLOCK,    // 系统锁定
-	COM_SYSTEMUNLOCK   // 系统解锁
-};
+
 
 class CLComDispose
 {

@@ -3,7 +3,7 @@
 //
 
 #pragma once
-
+#include "CLSockInfoDlg.h"
 
 // CRemoteCtrlClientDlg 对话框
 class CRemoteCtrlClientDlg : public CDialogEx
@@ -21,6 +21,9 @@ public:
 	virtual void DoDataExchange(CDataExchange* pDX);	// DDX/DDV 支持
 
 
+private:
+	CLSockInfoDlg m_SockInfo;
+
 // 实现
 protected:
 	HICON m_hIcon;
@@ -33,4 +36,6 @@ protected:
 	DECLARE_MESSAGE_MAP()
 public:
 	afx_msg void OnChar(UINT nChar, UINT nRepCnt, UINT nFlags);
+	afx_msg void OnBnClickedOk();
+	afx_msg void OnBnClickedButTestlink();
 };

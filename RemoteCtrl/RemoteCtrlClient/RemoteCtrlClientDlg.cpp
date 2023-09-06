@@ -7,6 +7,7 @@
 #include "RemoteCtrlClient.h"
 #include "RemoteCtrlClientDlg.h"
 #include "afxdialogex.h"
+#include "CLRCCliControl.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -52,6 +53,7 @@ END_MESSAGE_MAP()
 
 CRemoteCtrlClientDlg::CRemoteCtrlClientDlg(CWnd* pParent /*=nullptr*/)
 	: CDialogEx(IDD_REMOTECTRLCLIENT_DIALOG, pParent)
+	, m_SockInfo(this)
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 }
@@ -66,6 +68,8 @@ BEGIN_MESSAGE_MAP(CRemoteCtrlClientDlg, CDialogEx)
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
 	ON_WM_CHAR()
+	ON_BN_CLICKED(IDOK, &CRemoteCtrlClientDlg::OnBnClickedOk)
+	ON_BN_CLICKED(IDC_BUT_TESTLINK, &CRemoteCtrlClientDlg::OnBnClickedButTestlink)
 END_MESSAGE_MAP()
 
 
@@ -105,6 +109,9 @@ BOOL CRemoteCtrlClientDlg::OnInitDialog()
 	//ShowWindow(SW_MINIMIZE); // 窗口最小化
 
 	// TODO: 在此添加额外的初始化代码
+	/*// 非模态对话框
+	m_SockInfo.Create(IDD_DLG_SOCKINFO, this);
+	m_SockInfo.ShowWindow(SW_HIDE);*/
 
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
 }
@@ -165,4 +172,33 @@ void CRemoteCtrlClientDlg::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags)
 	// TODO: 在此添加消息处理程序代码和/或调用默认值
 
 	CDialogEx::OnChar(nChar, nRepCnt, nFlags);
+}
+
+
+void CRemoteCtrlClientDlg::OnBnClickedOk()
+{
+	// TODO: 在此添加控件通知处理程序代码
+	/*//非模态对话框
+	m_SockInfo.CenterWindow();
+	m_SockInfo.ShowWindow(SW_SHOW);*/
+	m_SockInfo.DoModal();
+}
+
+
+void CRemoteCtrlClientDlg::OnBnClickedButTestlink()
+{
+	CLRCCliControl* pControl = CLRCCliControl::getInstance();
+	pControl->SetPackage(COM_TESTCONNECT);
+	const char* str = pControl->GetPackage().Str();
+	CLTools::ErrorOut(str, __FILE__, __LINE__);
+	if (pControl->Send() > 0) {
+		pControl->Recv();
+		if (pControl->GetPackage().GetCmd() == COM_TESTCONNECT) {
+			//获取对话框句柄 GetSafeHwnd()
+			MessageBox("成功连接", "成功", MB_OK | MB_ICONINFORMATION);
+			return;
+		}
+	}
+	// 连接失败
+	MessageBox("连接失败", "失败", MB_OK | MB_ICONEXCLAMATION);
 }

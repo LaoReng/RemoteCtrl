@@ -18,7 +18,8 @@ void CLComDispose::Accept()
 {
 	while (true) {
 		m_sock.Joint(4);
-		Recv();
+		if (Recv() < 0)
+			break;
 		ComDis();
 		m_sock.CloseJointSock();
 	}
