@@ -1,18 +1,25 @@
 #include "pch.h"
 #include "CLComDispose.h"
 
+#define BUFSIZE 1024
 
 CLComDispose::CLComDispose()
 	: m_sock(1)
 	, m_lockThreadID(0)
 	, m_hLockThread(INVALID_HANDLE_VALUE)
 {
-	m_buffer.resize(MAX_BUFFER);
+	m_buffer = new char[BUFSIZE] {};
 	m_sock.Init("127.0.0.1", 7968);
 }
 
 CLComDispose::~CLComDispose()
-{}
+{
+	if (m_buffer) {
+		char* temp = m_buffer;
+		m_buffer = NULL;
+		delete temp;
+	}
+}
 
 void CLComDispose::Accept()
 {
@@ -64,18 +71,18 @@ void CLComDispose::ComDis()
 
 int CLComDispose::Recv()
 {
-	int ret = m_sock.Recv(m_buffer);
+	int ret = m_sock.Recv((PBYTE)m_buffer, BUFSIZE);
 	if (ret < 0) {
 		CLTools::ErrorOut("数据接收错误！", __FILE__, __LINE__);
 		return ret;
 	}
-	m_pack = CLPackage((char*)m_buffer.c_str(), strlen(m_buffer.c_str()));
+	m_pack = CLPackage(m_buffer, ret);
 	return ret;
 }
 
 int CLComDispose::Send()
 {
-	int ret = m_sock.Send(m_pack.Str());
+	int ret = m_sock.Send((PBYTE)m_pack.Str(), m_pack.GetSize());
 	if (ret < 0) {
 		CLTools::ErrorOut("数据发送错误！", __FILE__, __LINE__);
 		return ret;

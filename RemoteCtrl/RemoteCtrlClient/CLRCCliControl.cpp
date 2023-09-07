@@ -10,12 +10,17 @@ CLRCCliControl::CLRCCliControl()
 	: m_sock(0)
 {
 	m_sock.Init();
-	m_buffer.resize(BUFSIZE);
+	m_buffer = std::make_shared<char*>(new char[BUFSIZE]);
 }
 
 CLRCCliControl::~CLRCCliControl()
 {
 	m_sock.Close();
+	if (m_buffer.use_count() == 1) {
+		void* temp = *m_buffer;
+		*m_buffer = NULL;
+		delete temp;
+	}
 }
 
 CLRCCliControl* CLRCCliControl::getInstance()
@@ -48,15 +53,16 @@ void CLRCCliControl::SetPackage(unsigned short cmd, const char* data)
 int CLRCCliControl::Send()
 {
 	m_sock.Joint(7968, "127.0.0.1");
-	return m_sock.Send(m_pack.Str());
+	return m_sock.Send((PBYTE)m_pack.Str(), m_pack.GetSize());
 }
 
 int CLRCCliControl::Recv(BOOL isAutoClose)
 {
 	if (m_sock.GetJointSock() == INVALID_SOCKET)
 		return -1;
-	m_sock.Recv(m_buffer);
-	m_pack = CLPackage((char*)m_buffer.c_str(), m_buffer.size());
+	int RecvSize = m_sock.Recv((PBYTE)*m_buffer, BUFSIZE);
+	if (RecvSize > 0)
+		m_pack = CLPackage(*m_buffer, BUFSIZE);
 	if (isAutoClose)
 		m_sock.CloseJointSock();
 	return 0;

@@ -46,14 +46,15 @@ protected:
 	CTCP& operator=(const CTCP&) = delete;
 public:
 	// 初始化，若为服务端则会进行地址的绑定
-	int Init(const std::string& ip = "", const short port = 0);
+	// ip：用于服务器绑定地址，port：用于服务器绑定端口，value：listen连接队列最大长度(用于服务器)
+	int Init(const std::string& ip = "", const short port = 0, int value = 0);
 	// 等待连接/连接服务器
-	// value: listen连接队列最大长度(用于服务器)/连接服务器的端口号(用于客户端)，ip: 连接服务器的地址(用于客户端) 
-	SOCKET Joint(int value = 0, const std::string& ip = "");
+	// port: 连接服务器的端口号(用于客户端)，ip: 连接服务器的地址(用于客户端) 
+	SOCKET Joint(int port = 0, const std::string& ip = "");
 	// 接收数据
-	int Recv(std::string& buffer, size_t index = 0);
+	int Recv(PBYTE buffer, size_t BufSize, size_t index = 0);
 	// 发送数据
-	int Send(const std::string& buffer);
+	int Send(const PBYTE& buffer, size_t BufSize);
 	SOCKET GetJointSock() const;
 	// 关闭套接字
 	void Close();

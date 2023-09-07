@@ -21,7 +21,7 @@ private:
 private:
 	CLNetworkSocket<CTCP> m_sock;
 	CLPackage m_pack;
-	std::string m_buffer;
+	std::shared_ptr<char*> m_buffer;
 	class Helper {
 	public:
 		Helper() {}

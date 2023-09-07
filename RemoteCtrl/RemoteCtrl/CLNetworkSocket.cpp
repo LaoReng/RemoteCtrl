@@ -21,7 +21,7 @@ CTCP::~CTCP()
 	WSACleanup();
 }
 
-int CTCP::Init(const std::string& ip, const short port)
+int CTCP::Init(const std::string& ip, const short port, int value)
 {
 	//创建套接字
 	m_sock = socket(AF_INET, SOCK_STREAM, 0);
@@ -36,14 +36,14 @@ int CTCP::Init(const std::string& ip, const short port)
 			CLTools::ErrorOut("绑定失败！", __FILE__, __LINE__);
 			return -2;
 		}
+		listen(m_sock, value);
 	}
 	return 0;
 }
 
-SOCKET CTCP::Joint(int value, const std::string& ip)
+SOCKET CTCP::Joint(int port, const std::string& ip)
 {
 	if (m_isServer) {
-		listen(m_sock, value);
 		int len = (int)m_cliAddr.Size();
 		m_jointSock = accept(m_sock, (sockaddr*)&m_cliAddr, &len);
 		if (m_jointSock == INVALID_SOCKET) {
@@ -52,7 +52,9 @@ SOCKET CTCP::Joint(int value, const std::string& ip)
 		}
 	}
 	else {
-		m_serAddr = CSockAddr(ip, value);
+		if (m_sock == INVALID_SOCKET)
+			Init();
+		m_serAddr = CSockAddr(ip, port);
 		if (connect(m_sock, (sockaddr*)&m_serAddr, (int)m_serAddr.Size())) {
 			CLTools::ErrorOut("客户端连接服务器失败！", __FILE__, __LINE__);
 			return -4;
@@ -62,22 +64,26 @@ SOCKET CTCP::Joint(int value, const std::string& ip)
 	return m_jointSock;
 }
 
-int CTCP::Recv(std::string& buffer, size_t index)
+int CTCP::Recv(PBYTE buffer, size_t BufSize, size_t index)
 {
-	int ret = recv(m_jointSock, (char*)(buffer.c_str() + index), (int)(buffer.size() - index), 0);
+	if (index >= BufSize) {
+		CLTools::ErrorOut("传参错误或缓冲区已满！", __FILE__, __LINE__);
+		return -1;
+	}
+	int ret = recv(m_jointSock, (char*)(buffer + index), (int)(BufSize - index), 0);
 	if (ret < 0) {
 		CLTools::ErrorOut("数据接收失败！", __FILE__, __LINE__);
 	}
 	return ret;
 }
 
-int CTCP::Send(const std::string& buffer)
+int CTCP::Send(const PBYTE& buffer, size_t BufSize)
 {
 	int ret = 0;
 	int index = 0;
-	int buflen = (int)buffer.size();
+	int buflen = (int)BufSize;
 	while (buflen > 0) {
-		ret = send(m_jointSock, buffer.c_str() + index, buflen, 0);
+		ret = send(m_jointSock, (char*)(buffer + index), buflen, 0);
 		if (ret < 0) {
 			CLTools::ErrorOut("数据发送失败！", __FILE__, __LINE__);
 			index *= -1;
@@ -114,6 +120,8 @@ void CTCP::CloseJointSock()
 		SOCKET sock = m_jointSock;
 		m_jointSock = INVALID_SOCKET;
 		closesocket(sock);
+		if(!m_isServer)
+			m_sock = INVALID_SOCKET;
 	}
 }
 

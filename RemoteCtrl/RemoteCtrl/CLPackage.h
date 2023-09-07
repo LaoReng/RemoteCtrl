@@ -37,7 +37,7 @@ class CLPackage
 public:
 	CLPackage();
 	// 封装
-	CLPackage(unsigned short cmd, const char* data = "",size_t dataSize = 0);
+	CLPackage(unsigned short cmd, const char* data = "", size_t dataSize = 0);
 	// 解封装
 	CLPackage(char* buffer, size_t size);
 	// 复制构造
@@ -57,7 +57,8 @@ public:
 	size_t GetDataSize() const;
 	// 字符串化
 	const char* Str();
-	
+	// 获取包的大小
+	size_t GetSize() const;
 private:
 	// 设置数据包长度，内部使用
 	void SetPLen();
@@ -66,6 +67,9 @@ private:
 	// 将数值转换为二进制，指定位数不够补0，内部使用
 	// value：数值，ByteSize：二进制所占字节数
 	const char* Value2BinStr(unsigned int value, unsigned char ByteSize);
+	// 将数值转换为内存值
+	// mem：内存缓冲区，value：要转换的值，ValueSize：值所占的字节数
+	void Value2MemValue(PBYTE mem, unsigned int value, size_t ValueSize);
 private:
 	unsigned short         m_PHead;        // 数据包头
 	unsigned short         m_PCmd;         // 数据包命令
