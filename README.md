@@ -15,9 +15,9 @@
 
 在GitHub上点击New，进行仓库创建
 
-<img src="C:\Users\lwd15\AppData\Roaming\Typora\typora-user-images\image-20230826205138992.png" alt="image-20230826205138992" style="zoom:80%;" />
+ <img src="C:\Users\lwd15\AppData\Roaming\Typora\typora-user-images\image-20230826205138992.png" alt="image-20230826205138992" style="zoom:80%;" />
 
-<img src="C:\Users\lwd15\AppData\Roaming\Typora\typora-user-images\image-20230826205741118.png" alt="image-20230826205741118" style="zoom:80%;" />
+ <img src="C:\Users\lwd15\AppData\Roaming\Typora\typora-user-images\image-20230826205741118.png" alt="image-20230826205741118" style="zoom:80%;" />
 
 Repository name：输入你的仓库名
 
@@ -59,17 +59,17 @@ git config --global https.proxy 127.0.0.1:7890
 
 在GitHub上选择你新建的仓库，点击Code把https对应的地址复制一下
 
-<img src="C:\Users\lwd15\AppData\Roaming\Typora\typora-user-images\image-20230826210820303.png" alt="image-20230826210820303" style="zoom:80%;" />
+ <img src="C:\Users\lwd15\AppData\Roaming\Typora\typora-user-images\image-20230826210820303.png" alt="image-20230826210820303" style="zoom:80%;" />
 
 #### 本地克隆仓库
 
 选择一个目录，鼠标右键点击"Git 克隆"
 
-<img src="C:\Users\lwd15\AppData\Roaming\Typora\typora-user-images\image-20230826211059694.png" alt="image-20230826211059694" style="zoom:80%;" />
+ <img src="C:\Users\lwd15\AppData\Roaming\Typora\typora-user-images\image-20230826211059694.png" alt="image-20230826211059694" style="zoom:80%;" />
 
 如果你正确复制了仓库的地址，则会自动帮你填充，点击确定即可
 
-<img src="C:\Users\lwd15\AppData\Roaming\Typora\typora-user-images\image-20230826211140978.png" alt="image-20230826211140978" style="zoom:80%;" />
+ <img src="C:\Users\lwd15\AppData\Roaming\Typora\typora-user-images\image-20230826211140978.png" alt="image-20230826211140978" style="zoom:80%;" />
 
 稍等片刻，便会创建好克隆的仓库文件夹，文件夹里面也会有GitHub仓库上的文件
 
@@ -81,7 +81,7 @@ git config --global https.proxy 127.0.0.1:7890
 
 进入克隆的文件夹下，鼠标右键点击“Git 提交”
 
-<img src="C:\Users\lwd15\AppData\Roaming\Typora\typora-user-images\image-20230826211633387.png" alt="image-20230826211633387" style="zoom:80%;" />
+ <img src="C:\Users\lwd15\AppData\Roaming\Typora\typora-user-images\image-20230826211633387.png" alt="image-20230826211633387" style="zoom:80%;" />
 
 在提交的时候，需要写日志不写没有办法提交，写完后点击提交并推送就可以了
 
@@ -133,11 +133,11 @@ git config --global https.proxy 127.0.0.1:7890
 
 TCP客户端/服务器网络编程：
 
-<img src="C:\Users\lwd15\AppData\Roaming\Typora\typora-user-images\image-20230827175923218.png" alt="image-20230827175923218" style="zoom:80%;" />
+ <img src="C:\Users\lwd15\AppData\Roaming\Typora\typora-user-images\image-20230827175923218.png" alt="image-20230827175923218" style="zoom:80%;" />
 
 UDP客户端/服务器网络编程：
 
-<img src="C:\Users\lwd15\AppData\Roaming\Typora\typora-user-images\image-20230827180012485.png" alt="image-20230827180012485" style="zoom:80%;" />
+ <img src="C:\Users\lwd15\AppData\Roaming\Typora\typora-user-images\image-20230827180012485.png" alt="image-20230827180012485" style="zoom:80%;" />
 
 规范后流程：
 
@@ -255,7 +255,64 @@ graph TD;
 
 ## 客户端
 
+## 经验和技巧总结
 
+### 如何将值赋到别的内存空间里面以及如何读取
+
+例：要将int型的数值52，short型的数值33插入到一个内存流中和从内存流中读取指定类型的数据该怎么实现？
+
+做法就是将这个**数值里面的内容一个字节一个字节的进行读取**和写入内存，同时需要注意大顶端和小顶端的问题，<怎么一个字节一个字节的写>：取出数值中一个字节里面的内容，就需要用到指针转换，将数值的地址类型转换为一个字节的地址类型，然后进行写入内存就可以了，<怎么判断存储方式是大顶端还是小顶端>：技巧当你把数据写入内存以后，再将它从内存中按原来的类型读取出来，如果和原来的数值一样则就是对的，不一样就是写反了。
+
+怎么从内存流中读取指定类型的数据：还是上面存入到内存中的套路，先将地址的类型转换为指定数据类型的指针，然后再读取数据就可以了
+
+示例代码：
+
+```c++
+// 将int型的数值52，short型的数值33插入到一个内存流里面
+int   IValue = 52;
+short SValue = 33;
+char* buffer = new char[256]{};
+buffer[0] = ((BYTE*)&IValue)[3];
+buffer[1] = ((BYTE*)&IValue)[2];
+buffer[2] = ((BYTE*)&IValue)[1];
+buffer[3] = ((BYTE*)&IValue)[0];
+buffer[4] = ((BYTE*)&SValue)[1];
+buffer[5] = ((BYTE*)&SValue)[0];
+delete[] buffer;
+```
+
+ <img src="C:\Users\lwd15\AppData\Roaming\Typora\typora-user-images\image-20230908161850796.png" alt="image-20230908161850796" style="zoom:80%;" />
+
+可以看到，我们已经将数值按字节插入到指定内存流中
+
+```c++
+// 从内存流中读取指定类型的数据
+int iVal = *(int*)buffer;
+int sVal = *(short*)(buffer + 4); // 前面的4字节已经读取完
+std::cout << hex << "0x" << iVal << " 0x" << sVal << std::endl;
+```
+
+ <img src="C:\Users\lwd15\AppData\Roaming\Typora\typora-user-images\image-20230908162129700.png" alt="image-20230908162129700" style="zoom:80%;" />
+
+可以看到，也是有正确的数据读取出来的，只是在我的电脑上是低字节放在高位的(专业术语：大顶端)，所以造成了数据反了的现象，下面的代码则是大顶端将数据插入内存的示例代码
+
+```c++
+// <大顶端> 将int型的数值52，short型的数值33插入到一个内存流里面
+int   IValue = 52;
+short SValue = 33;
+char* buffer = new char[256]{};
+buffer[0] = ((BYTE*)&IValue)[0];
+buffer[1] = ((BYTE*)&IValue)[1];
+buffer[2] = ((BYTE*)&IValue)[2];
+buffer[3] = ((BYTE*)&IValue)[3];
+buffer[4] = ((BYTE*)&SValue)[0];
+buffer[5] = ((BYTE*)&SValue)[1];
+delete[] buffer;
+```
+
+ <img src="C:\Users\lwd15\AppData\Roaming\Typora\typora-user-images\image-20230908162546846.png" alt="image-20230908162546846" style="zoom:80%;" />
+
+可以看到，这回输出的数据就正确了
 
 ## 遇到的错误及解决方法
 
@@ -263,7 +320,7 @@ graph TD;
 
 问题描述：在资源添加完成以后，编译的时候报错：error C2504: “CDialogEx”: 未定义基类
 
-<img src="C:\Users\lwd15\AppData\Roaming\Typora\typora-user-images\image-20230902182625598.png" alt="image-20230902182625598" style="zoom:80%;" />
+ <img src="C:\Users\lwd15\AppData\Roaming\Typora\typora-user-images\image-20230902182625598.png" alt="image-20230902182625598" style="zoom:80%;" />
 
 问题分析：不是咱们创建的类，出现这种错误，大概的原因就是由于缺少头文件导致的
 
@@ -279,7 +336,7 @@ graph TD;
 
 问题描述：在调用DoModal()创建模态对话框时出现错误
 
-<img src="C:\Users\lwd15\AppData\Roaming\Typora\typora-user-images\image-20230905164116767.png" alt="image-20230905164116767" style="zoom:80%;" />
+ <img src="C:\Users\lwd15\AppData\Roaming\Typora\typora-user-images\image-20230905164116767.png" alt="image-20230905164116767" style="zoom:80%;" />
 
 问题分析：在调用DoModal之前，该项目调用了该对象的Create()或ShowWindow()，导致的这种错误
 

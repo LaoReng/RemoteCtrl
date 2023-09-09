@@ -11,7 +11,7 @@ public:
 	int Recv(BOOL isAutoClose = TRUE);
 	static CLRCCliControl* getInstance();
 	CLPackage& GetPackage();
-	void SetPackage(unsigned short cmd, const char* data = "");
+	void SetPackage(unsigned short cmd, const char* data = NULL);
 private:
 	CLRCCliControl();
 	~CLRCCliControl();

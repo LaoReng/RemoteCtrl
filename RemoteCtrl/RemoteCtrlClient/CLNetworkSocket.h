@@ -2,18 +2,22 @@
 #include <vector>
 #include <WinSock2.h>
 
-#define WSAV1 2
-#define WSAV2 2
+#define WSAV1 2 // WSA版本拼接1
+#define WSAV2 2 // WSA版本拼接2
 
 //套接字地址类
 class CSockAddr
 {
 public:
-	CSockAddr() = default;
+	//CSockAddr() = default;
 	~CSockAddr() = default;
-	CSockAddr(const std::string& ip, const short port) {
+	CSockAddr(const char* ip = NULL, const short port = 0) {
+		if (ip == NULL) {
+			memset(&m_addr, 0, sizeof(m_addr));
+			return;
+		}
 		m_addr.sin_family = AF_INET;
-		m_addr.sin_addr.s_addr = inet_addr(ip.data());
+		m_addr.sin_addr.s_addr = inet_addr(ip);
 		m_addr.sin_port = htons(port);
 	}
 	CSockAddr(const CSockAddr& addr) {
@@ -27,6 +31,11 @@ public:
 	}
 	sockaddr_in* operator&() {
 		return &m_addr;
+	}
+	void SetAddr(const char* ip, const short port) {
+		m_addr.sin_family = AF_INET;
+		m_addr.sin_addr.s_addr = inet_addr(ip);
+		m_addr.sin_port = htons(port);
 	}
 	//获取sockaddr_in大小
 	size_t Size() {
@@ -47,10 +56,10 @@ protected:
 public:
 	// 初始化，若为服务端则会进行地址的绑定
 	// ip：用于服务器绑定地址，port：用于服务器绑定端口，value：listen连接队列最大长度(用于服务器)
-	int Init(const std::string& ip = "", const short port = 0, int value = 0);
+	int Init(const char* ip = NULL, const short port = 0, int value = 0);
 	// 等待连接/连接服务器
 	// port: 连接服务器的端口号(用于客户端)，ip: 连接服务器的地址(用于客户端) 
-	SOCKET Joint(int port = 0, const std::string& ip = "");
+	SOCKET Joint(int port = 0, const char* ip = NULL);
 	// 接收数据
 	int Recv(PBYTE buffer, size_t BufSize, size_t index = 0);
 	// 发送数据
@@ -79,11 +88,11 @@ protected:
 	CUDP& operator=(const CUDP&) = delete;
 public:
 	// 初始化，若为服务端则会进行地址的绑定
-	int Init(const std::string& ip = "", const short port = -1);
+	int Init(const char* ip = NULL, const short port = -1);
 	// 接收数据
 	int Recv(std::string& buffer);
 	// 发送数据
-	int Send(const std::string& buffer, const std::string& ip = "", const short& port = -1);
+	int Send(const std::string& buffer, const char* ip = NULL, const short& port = -1);
 	// 关闭套接字
 	void Close();
 private:

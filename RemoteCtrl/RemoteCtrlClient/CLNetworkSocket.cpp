@@ -4,10 +4,10 @@
 CTCP::CTCP(int isServer)
 	: m_sock(INVALID_SOCKET)
 	, m_jointSock(INVALID_SOCKET)
+	, m_serAddr()
+	, m_cliAddr()
 	, m_isServer(isServer)
 {
-	m_serAddr = CSockAddr("", -1);
-	m_cliAddr = CSockAddr("", -1);
 	WSADATA data = {};
 	if (WSAStartup(MAKEWORD(WSAV1, WSAV2), &data)) {
 		CLTools::ErrorOut("套接字库加载失败！", __FILE__, __LINE__);
@@ -21,7 +21,7 @@ CTCP::~CTCP()
 	WSACleanup();
 }
 
-int CTCP::Init(const std::string& ip, const short port, int value)
+int CTCP::Init(const char* ip, const short port, int value)
 {
 	//创建套接字
 	m_sock = socket(AF_INET, SOCK_STREAM, 0);
@@ -30,6 +30,10 @@ int CTCP::Init(const std::string& ip, const short port, int value)
 		return -1;
 	}
 	if (m_isServer) {
+		if (ip == NULL) {
+			CLTools::ErrorOut("请提供服务器绑定地址！", __FILE__, __LINE__);
+			return -2;
+		}
 		m_serAddr = CSockAddr(ip, port);
 		//TCP服务器端口绑定操作
 		if (bind(m_sock, (sockaddr*)&m_serAddr, (int)m_serAddr.Size())) {
@@ -41,7 +45,7 @@ int CTCP::Init(const std::string& ip, const short port, int value)
 	return 0;
 }
 
-SOCKET CTCP::Joint(int port, const std::string& ip)
+SOCKET CTCP::Joint(int port, const char* ip)
 {
 	if (m_isServer) {
 		int len = (int)m_cliAddr.Size();
@@ -64,20 +68,20 @@ SOCKET CTCP::Joint(int port, const std::string& ip)
 	return m_jointSock;
 }
 
-int CTCP::Recv(PBYTE buffer, size_t BufSize,size_t index)
+int CTCP::Recv(PBYTE buffer, size_t BufSize, size_t index)
 {
 	if (index >= BufSize) {
 		CLTools::ErrorOut("传参错误或缓冲区已满！", __FILE__, __LINE__);
 		return -1;
 	}
-	int ret = recv(m_jointSock, (char*)(buffer+index), (int)(BufSize-index), 0);
+	int ret = recv(m_jointSock, (char*)(buffer + index), (int)(BufSize - index), 0);
 	if (ret < 0) {
 		CLTools::ErrorOut("数据接收失败！", __FILE__, __LINE__);
 	}
 	return ret;
 }
 
-int CTCP::Send(const PBYTE& buffer,size_t BufSize)
+int CTCP::Send(const PBYTE& buffer, size_t BufSize)
 {
 	int ret = 0;
 	int index = 0;
@@ -120,7 +124,7 @@ void CTCP::CloseJointSock()
 		SOCKET sock = m_jointSock;
 		m_jointSock = INVALID_SOCKET;
 		closesocket(sock);
-		if(!m_isServer)
+		if (!m_isServer)
 			m_sock = INVALID_SOCKET;
 	}
 }
@@ -144,7 +148,7 @@ CUDP::~CUDP()
 	WSACleanup();
 }
 
-int CUDP::Init(const std::string& ip, const short port)
+int CUDP::Init(const char* ip, const short port)
 {
 	if ((m_sock = socket(PF_INET, SOCK_DGRAM, 0)) == INVALID_SOCKET) {
 		CLTools::ErrorOut("套接字初始化失败！", __FILE__, __LINE__);
@@ -170,7 +174,7 @@ int CUDP::Recv(std::string& buffer)
 	return ret;
 }
 
-int CUDP::Send(const std::string& buffer, const std::string& ip, const short& port)
+int CUDP::Send(const std::string& buffer, const char* ip, const short& port)
 {
 	if (port != -1) {
 		m_cliAddr = CSockAddr(ip, port);

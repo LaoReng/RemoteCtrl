@@ -6,7 +6,7 @@ CLPackage::CLPackage()
 	, m_PCmd(1)
 	, m_PData(NULL)
 	, m_PDataSize(0)
-	, m_PackIsChange(1)
+	, m_PackIsChange(TRUE)
 {
 	SetPLen();
 	SetPAdd();
@@ -17,7 +17,7 @@ CLPackage::CLPackage(unsigned short cmd, const char* data, size_t dataSize)
 	, m_PCmd(cmd)
 	, m_PData(NULL)
 	, m_PDataSize(dataSize)
-	, m_PackIsChange(1)
+	, m_PackIsChange(TRUE)
 {
 	if (data) {
 		if (!dataSize)
@@ -33,7 +33,7 @@ CLPackage::CLPackage(char* buffer, size_t size)
 	: m_PHead(0), m_PCmd(0)
 	, m_PLength(0), m_PAdd(0)
 	, m_PData(NULL), m_PDataSize(0)
-	, m_PackIsChange(1)
+	, m_PackIsChange(TRUE)
 {
 	size_t index = 0;
 	for (int i = 0; i < size - 1; i++) {
@@ -91,6 +91,8 @@ CLPackage& CLPackage::operator=(const CLPackage& clp)
 		m_PCmd = clp.m_PCmd;
 		m_PLength = clp.m_PLength;
 		m_PAdd = clp.m_PAdd;
+		if (m_PData != NULL && m_PData.use_count() == 1)
+			delete* m_PData;
 		m_PData = clp.m_PData;
 		m_PDataSize = clp.m_PDataSize;
 		m_strPackage = clp.m_strPackage;
@@ -112,7 +114,7 @@ CLPackage::~CLPackage()
 void CLPackage::SetCmd(unsigned short cmd)
 {
 	m_PCmd = cmd;
-	m_PackIsChange = 1;
+	m_PackIsChange = TRUE;
 }
 
 void CLPackage::SetData(const char* data)
@@ -125,13 +127,13 @@ void CLPackage::SetData(const char* data)
 	}
 	m_PDataSize = 0;
 	if (data) {
-		m_PDataSize = strlen(data) + 1;
-		m_PData = std::make_shared<char*>(new char[m_PDataSize] { 0 });
-		memcpy(*m_PData, data, m_PDataSize - 1);
+		m_PDataSize = strlen(data);
+		m_PData = std::make_shared<char*>(new char[m_PDataSize + 1]{ 0 });
+		memcpy(*m_PData, data, m_PDataSize);
+		SetPAdd();
 	}
-	SetPLen();
-	SetPAdd();
-	m_PackIsChange = 1;
+	m_PLength = 4 + (unsigned short)m_PDataSize;
+	m_PackIsChange = TRUE;
 }
 
 unsigned short CLPackage::GetCmd() const
@@ -152,15 +154,10 @@ size_t CLPackage::GetDataSize() const
 #define BITSIZE(x) (sizeof(x) * 8)
 
 
-const char* CLPackage::Str()
+const char* CLPackage::MemStream()
 {
 	if (m_PackIsChange) {
 		m_strPackage.clear();
-		/*m_strPackage += Value2BinStr(m_PHead, sizeof(m_PHead));
-		m_strPackage += Value2BinStr(m_PCmd, sizeof(m_PCmd));
-		m_strPackage += Value2BinStr(m_PLength, sizeof(m_PLength));
-		m_strPackage += Value2BinStr(m_PAdd, sizeof(m_PAdd));*/
-		//第二种实现方法
 		size_t index = 0;
 		size_t bitAllSize = BITSIZE(m_PHead) + BITSIZE(m_PCmd) + BITSIZE(m_PLength) + BITSIZE(m_PAdd);
 		m_strPackage.resize(bitAllSize);
@@ -169,8 +166,8 @@ const char* CLPackage::Str()
 		Value2MemValue((PBYTE)(strPtr + index), m_PCmd, sizeof(m_PCmd)); index += sizeof(m_PCmd);
 		Value2MemValue((PBYTE)(strPtr + index), m_PLength, sizeof(m_PLength)); index += sizeof(m_PLength);
 		Value2MemValue((PBYTE)(strPtr + index), m_PAdd, sizeof(m_PAdd)); index += sizeof(m_PAdd);
-		unsigned short phead = *(unsigned short*)strPtr;
-		CLTools::ErrorOut(m_strPackage.c_str(), __FILE__, __LINE__);// << std::endl;
+		/*unsigned short phead = *(unsigned short*)strPtr;
+		CLTools::ErrorOut(m_strPackage.c_str(), __FILE__, __LINE__);*/
 		if (m_PDataSize)
 			memcpy(strPtr + index, *m_PData, m_PDataSize);
 		m_PackIsChange = FALSE;
@@ -186,7 +183,7 @@ size_t CLPackage::GetSize() const
 void CLPackage::SetPLen()
 {
 	m_PLength = 4 + (unsigned short)m_PDataSize;
-	m_PackIsChange = 1;
+	m_PackIsChange = TRUE;
 }
 
 void CLPackage::SetPAdd()
@@ -196,7 +193,7 @@ void CLPackage::SetPAdd()
 		sum += (*m_PData)[i];
 	}
 	m_PAdd = sum;
-	m_PackIsChange = 1;
+	m_PackIsChange = TRUE;
 }
 
 const char* CLPackage::Value2BinStr(unsigned int value, unsigned char ByteSize)

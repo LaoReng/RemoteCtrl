@@ -18,7 +18,6 @@ enum {
 };
 
 #pragma pack(push,1) // 设置内存对齐方式，将对齐系数进栈
-
 typedef struct fileInfo
 {
 	char m_fileName[MAX_PATH] = "";
@@ -37,7 +36,7 @@ class CLPackage
 public:
 	CLPackage();
 	// 封装
-	CLPackage(unsigned short cmd, const char* data = "", size_t dataSize = 0);
+	CLPackage(unsigned short cmd, const char* data = NULL, size_t dataSize = 0);
 	// 解封装
 	CLPackage(char* buffer, size_t size);
 	// 复制构造
@@ -55,8 +54,8 @@ public:
 	const char* GetData() const;
 	// 获取包中数据部分大小
 	size_t GetDataSize() const;
-	// 字符串化
-	const char* Str();
+	// 数据包内存流化
+	const char* MemStream();
 	// 获取包的大小
 	size_t GetSize() const;
 private:
@@ -70,14 +69,15 @@ private:
 	// 将数值转换为内存值
 	// mem：内存缓冲区，value：要转换的值，ValueSize：值所占的字节数
 	void Value2MemValue(PBYTE mem, unsigned int value, size_t ValueSize);
-private:
-	unsigned short         m_PHead;        // 数据包头
+protected:
+	unsigned short         m_PHead;        // 数据包头，固定0xFEFF
 	unsigned short         m_PCmd;         // 数据包命令
-	unsigned short         m_PLength;      // 数据包长度
-	unsigned int           m_PAdd;         // 数据校验和
+	unsigned short         m_PLength;      // 数据包长度，从数据校验和到数据包尾部
+	unsigned int           m_PAdd;         // 数据校验和，就是数组部分的和，默认是0如果没有数组就不需要计算
 	std::shared_ptr<char*> m_PData;        // 数据
+private:
 	size_t                 m_PDataSize;    // 数据长度
 	std::string            m_strPackage;   // 字符化包数据
-	BOOL                   m_PackIsChange; // 包是否发生变化，1 发生变化 0 未发生变化
+	BOOL                   m_PackIsChange; // 包是否发生变化，TRUE 发生变化 FALSE 未发生变化
 };
 #pragma pack(pop) // 将自定义对齐系数出栈，恢复默认对齐方式

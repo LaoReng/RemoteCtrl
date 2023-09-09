@@ -8,9 +8,10 @@ CLRCCliControl* CLRCCliControl::m_pControl = NULL;
 
 CLRCCliControl::CLRCCliControl()
 	: m_sock(0)
+	, m_pack()
 {
 	m_sock.Init();
-	m_buffer = std::make_shared<char*>(new char[BUFSIZE]);
+	m_buffer = std::make_shared<char*>(new char[BUFSIZE] {});
 }
 
 CLRCCliControl::~CLRCCliControl()
@@ -47,13 +48,15 @@ void CLRCCliControl::releaseInstance()
 
 void CLRCCliControl::SetPackage(unsigned short cmd, const char* data)
 {
-	m_pack = CLPackage(cmd, data);
+	//m_pack = CLPackage(cmd, data);
+	m_pack.SetCmd(cmd);
+	m_pack.SetData(data);
 }
 
 int CLRCCliControl::Send()
 {
 	m_sock.Joint(7968, "127.0.0.1");
-	return m_sock.Send((PBYTE)m_pack.Str(), m_pack.GetSize());
+	return m_sock.Send((PBYTE)m_pack.MemStream(), m_pack.GetSize());
 }
 
 int CLRCCliControl::Recv(BOOL isAutoClose)

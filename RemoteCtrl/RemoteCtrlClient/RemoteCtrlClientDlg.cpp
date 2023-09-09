@@ -21,12 +21,12 @@ class CAboutDlg : public CDialogEx
 public:
 	CAboutDlg();
 
-// 对话框数据
+	// 对话框数据
 #ifdef AFX_DESIGN_TIME
 	enum { IDD = IDD_ABOUTBOX };
 #endif
 
-	protected:
+protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV 支持
 
 // 实现
@@ -189,16 +189,15 @@ void CRemoteCtrlClientDlg::OnBnClickedButTestlink()
 {
 	CLRCCliControl* pControl = CLRCCliControl::getInstance();
 	pControl->SetPackage(COM_TESTCONNECT);
-	const char* str = pControl->GetPackage().Str();
-	CLTools::ErrorOut(str, __FILE__, __LINE__);
 	if (pControl->Send() > 0) {
 		pControl->Recv();
 		if (pControl->GetPackage().GetCmd() == COM_TESTCONNECT) {
 			//获取对话框句柄 GetSafeHwnd()
-			MessageBox("成功连接", "成功", MB_OK | MB_ICONINFORMATION);
+			//MessageBox("成功连接", "成功", MB_OK | MB_ICONINFORMATION);
+			MessageBox("成功连接    ", "成功", MB_OK | MB_USERICON);
 			return;
 		}
 	}
 	// 连接失败
-	MessageBox("连接失败", "失败", MB_OK | MB_ICONEXCLAMATION);
+	MessageBox("连接失败", "失败", MB_OK | MB_ICONERROR);
 }

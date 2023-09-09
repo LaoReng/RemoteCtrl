@@ -23,13 +23,17 @@ CLComDispose::~CLComDispose()
 
 void CLComDispose::Accept()
 {
+	int TestCount = 0;
 	while (true) {
 		m_sock.Joint(4);
 		if (Recv() < 0)
 			break;
 		ComDis();
 		m_sock.CloseJointSock();
+		TestCount++;
+		std::cout << "处理第" << TestCount << "个连接命令请求\n";
 	}
+	
 }
 
 void CLComDispose::ComDis()
@@ -82,7 +86,7 @@ int CLComDispose::Recv()
 
 int CLComDispose::Send()
 {
-	int ret = m_sock.Send((PBYTE)m_pack.Str(), m_pack.GetSize());
+	int ret = m_sock.Send((PBYTE)m_pack.MemStream(), m_pack.GetSize());
 	if (ret < 0) {
 		CLTools::ErrorOut("数据发送错误！", __FILE__, __LINE__);
 		return ret;
