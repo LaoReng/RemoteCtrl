@@ -22,7 +22,9 @@ public:
 
 
 private:
-	CLSockInfoDlg m_SockInfo;
+	CLSockInfoDlg m_SockInfo; // 网络套接字信息
+	// 目录显示控件
+	CTreeCtrl m_TreeDrive;
 
 // 实现
 protected:
@@ -34,8 +36,16 @@ protected:
 	afx_msg void OnPaint();
 	afx_msg HCURSOR OnQueryDragIcon();
 	DECLARE_MESSAGE_MAP()
+private:
+	// 获取文件树空间选定的文件目录，并返回当前选定项的句柄
+	HTREEITEM GetSelectedDir(CString& str);
 public:
 	afx_msg void OnChar(UINT nChar, UINT nRepCnt, UINT nFlags);
 	afx_msg void OnBnClickedOk();
+	// 点击测试连接按钮，响应函数
 	afx_msg void OnBnClickedButTestlink();
+	// 点击卷获取按钮，响应函数
+	afx_msg void OnBnClickedButGetdrive();
+	// 双击文件树里的项，响应函数
+	afx_msg void OnNMDblclkTreeDrive(NMHDR* pNMHDR, LRESULT* pResult);
 };

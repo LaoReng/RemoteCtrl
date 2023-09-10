@@ -50,7 +50,13 @@ void CLRCCliControl::SetPackage(unsigned short cmd, const char* data)
 {
 	//m_pack = CLPackage(cmd, data);
 	m_pack.SetCmd(cmd);
-	m_pack.SetData(data);
+	if (data)
+		m_pack.SetData(data);
+}
+
+void CLRCCliControl::Close()
+{
+	m_sock.CloseJointSock();
 }
 
 int CLRCCliControl::Send()
@@ -59,14 +65,19 @@ int CLRCCliControl::Send()
 	return m_sock.Send((PBYTE)m_pack.MemStream(), m_pack.GetSize());
 }
 
-int CLRCCliControl::Recv(BOOL isAutoClose)
+int CLRCCliControl::Recv(BOOL isAutoClose, size_t index)
 {
 	if (m_sock.GetJointSock() == INVALID_SOCKET)
 		return -1;
-	int RecvSize = m_sock.Recv((PBYTE)*m_buffer, BUFSIZE);
-	if (RecvSize > 0)
-		m_pack = CLPackage(*m_buffer, BUFSIZE);
+	int RecvSize = m_sock.Recv((PBYTE)*m_buffer, BUFSIZE, index);
+	RecvSize += (int)index;
+	if (RecvSize > 0) {
+		m_pack = CLPackage(*m_buffer, RecvSize);
+	}
+	else {
+		RecvSize = -1;
+	}
 	if (isAutoClose)
 		m_sock.CloseJointSock();
-	return 0;
+	return RecvSize;
 }

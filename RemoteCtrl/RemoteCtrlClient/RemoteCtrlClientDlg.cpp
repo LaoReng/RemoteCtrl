@@ -61,6 +61,7 @@ CRemoteCtrlClientDlg::CRemoteCtrlClientDlg(CWnd* pParent /*=nullptr*/)
 void CRemoteCtrlClientDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialogEx::DoDataExchange(pDX);
+	DDX_Control(pDX, IDC_TREE_DRIVE, m_TreeDrive);
 }
 
 BEGIN_MESSAGE_MAP(CRemoteCtrlClientDlg, CDialogEx)
@@ -70,6 +71,8 @@ BEGIN_MESSAGE_MAP(CRemoteCtrlClientDlg, CDialogEx)
 	ON_WM_CHAR()
 	ON_BN_CLICKED(IDOK, &CRemoteCtrlClientDlg::OnBnClickedOk)
 	ON_BN_CLICKED(IDC_BUT_TESTLINK, &CRemoteCtrlClientDlg::OnBnClickedButTestlink)
+	ON_BN_CLICKED(IDC_BUT_GETDRIVE, &CRemoteCtrlClientDlg::OnBnClickedButGetdrive)
+	ON_NOTIFY(NM_DBLCLK, IDC_TREE_DRIVE, &CRemoteCtrlClientDlg::OnNMDblclkTreeDrive)
 END_MESSAGE_MAP()
 
 
@@ -167,6 +170,23 @@ HCURSOR CRemoteCtrlClientDlg::OnQueryDragIcon()
 
 
 
+HTREEITEM CRemoteCtrlClientDlg::GetSelectedDir(CString& str)
+{
+	HTREEITEM hTree = m_TreeDrive.GetSelectedItem();
+	if (hTree == NULL)
+		return NULL;
+	HTREEITEM hParent = hTree;
+	str = m_TreeDrive.GetItemText(hParent);
+	str += "\\";
+	do {
+		hParent = m_TreeDrive.GetParentItem(hParent);
+		if (hParent) {
+			str = m_TreeDrive.GetItemText(hParent) + "\\" + str;
+		}
+	} while (hParent);
+	return hTree;
+}
+
 void CRemoteCtrlClientDlg::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags)
 {
 	// TODO: 在此添加消息处理程序代码和/或调用默认值
@@ -200,4 +220,104 @@ void CRemoteCtrlClientDlg::OnBnClickedButTestlink()
 	}
 	// 连接失败
 	MessageBox("连接失败", "失败", MB_OK | MB_ICONERROR);
+}
+
+
+void CRemoteCtrlClientDlg::OnBnClickedButGetdrive()
+{
+	CLRCCliControl* pControl = CLRCCliControl::getInstance();
+	pControl->SetPackage(COM_GETDRIVE);
+	if (pControl->Send() > 0) {
+		pControl->Recv();
+		CLPackage pack = pControl->GetPackage();
+		if (pack.GetCmd() == COM_GETDRIVE) {
+			m_TreeDrive.DeleteAllItems();
+			const char* str = pack.GetData();
+			if (!str) {
+				CLTools::ErrorOut("未获取到数据！", __FILE__, __LINE__);
+				return;
+			}
+			CString drive;
+			for (int i = 0; str[i] != '\0'; i++) {
+				if (str[i] == ',')
+					continue;
+				drive.Format("%c:", str[i]);
+				HTREEITEM hPA = m_TreeDrive.InsertItem(drive);
+			}
+		}
+	}
+}
+
+void CRemoteCtrlClientDlg::OnNMDblclkTreeDrive(NMHDR* pNMHDR, LRESULT* pResult)
+{
+
+	
+	CString str;
+	HTREEITEM hTree = GetSelectedDir(str);
+	if (hTree == NULL) {
+		CLTools::ErrorOut("未选中控件!", __FILE__, __LINE__);
+		return;
+	}
+	m_TreeDrive.Expand(hTree, TVE_COLLAPSERESET); // 折叠并删除子项
+	/*str += "\r\n";
+	OutputDebugString(str);*/
+	CLRCCliControl* pControl = CLRCCliControl::getInstance();
+	pControl->SetPackage(COM_GETFILE, str);
+	INT ret = pControl->Send();
+	if (ret < 0) {
+		CLTools::ErrorOut("数据包发送失败！", __FILE__, __LINE__);
+	}
+	INT index = 0;
+	INT count = 0;
+	do {
+		index = pControl->Recv(FALSE, index);
+		if (index < 0)
+			break;
+		CLPackage& pack = pControl->GetPackage();
+		if (pack.GetCmd() == COM_GETFILE) {
+			char* finfos = (char*)pack.GetData();
+			size_t finfosSize = pack.GetDataSize();
+			for (int i = 0; i < finfosSize / sizeof(FILEINFO); i++) {
+				PFILEINFO finfo = (PFILEINFO)(finfos + sizeof(FILEINFO) * i);
+				if (finfo->m_isDir) {
+					m_TreeDrive.InsertItem(finfo->m_fileName, hTree, TVI_SORT);
+					count++;
+				}
+				else if(!finfo->m_isDir)
+					count++;
+			}
+		}
+	} while (index >= 0);
+	pControl->Close();
+	m_TreeDrive.Expand(hTree, TVE_EXPAND); // 展开子项
+	str.Format("一共%d个文件夹", count);
+	CLTools::ErrorOut(str, __FILE__, __LINE__);
+	/*
+	// TODO: 在此添加控件通知处理程序代码
+	
+	//CLTools::ErrorOut(str, __FILE__, __LINE__);
+	m_TreeDrive.Expand(hTree, TVE_COLLAPSERESET); // 折叠并删除子项
+	
+	
+	if (pControl->Send() > 0) {
+		PFILEINFO finfo = {};
+		int index = 0;
+		do {
+			index = pControl->Recv(FALSE, index);
+			CLPackage pack = pControl->GetPackage();
+			if (pack.GetCmd() == COM_GETFILE) {
+				char* finfos = (char*)pack.GetData();
+				size_t finfosSize = pack.GetDataSize();
+				for (int i = 0; i < finfosSize / sizeof(FILEINFO); i++) {
+					finfo = (PFILEINFO)(finfos + sizeof(FILEINFO) * i);
+					if (finfo->m_isDir) {
+						m_TreeDrive.InsertItem(finfo->m_fileName, hTree, TVI_SORT);
+					}
+				}
+			}
+		} while (!finfo->m_isLast);
+		pControl->Close();
+		m_TreeDrive.Expand(hTree, TVE_EXPAND); // 展开子项
+	}*/
+	*pResult = 0;
 }

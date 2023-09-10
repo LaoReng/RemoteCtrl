@@ -20,15 +20,16 @@ enum {
 #pragma pack(push,1) // 设置内存对齐方式，将对齐系数进栈
 typedef struct fileInfo
 {
-	char m_fileName[MAX_PATH] = "";
-	BOOL m_isDir = FALSE;
-	BOOL m_isHidden = FALSE;
-	BOOL m_isLast = TRUE;
-	std::string m_strFileInfo;
+	char        m_fileName[50] = ""; // 文件名
+	BOOL        m_isDir;              // 是否为目录
+	BOOL        m_isHidden;           // 是否是隐藏状态
+	BOOL        m_isLast;             // 是否是最后一个
+	//BYTE m_strFileInfo[MAX_PATH + sizeof(BOOL) * 3] = "";
 	fileInfo() :m_fileName(""), m_isDir(FALSE), m_isHidden(FALSE), m_isLast(TRUE) {}
 	fileInfo(const char* filename, BOOL isdir, BOOL ishidden, BOOL islast);
-	const char* operator&();
-}FILEINFO;
+	void MemStream(PBYTE mem);
+	//const char* operator&();
+}FILEINFO, * PFILEINFO;
 
 
 class CLPackage
@@ -37,8 +38,8 @@ public:
 	CLPackage();
 	// 封装
 	CLPackage(unsigned short cmd, const char* data = NULL, size_t dataSize = 0);
-	// 解封装
-	CLPackage(char* buffer, size_t size);
+	// 解封装，并将size修改为处理完缓冲区当前数据的最后一个字节
+	CLPackage(char* buffer, int& size);
 	// 复制构造
 	CLPackage(const CLPackage& clp);
 	// 等于号重载
@@ -77,7 +78,7 @@ protected:
 	std::shared_ptr<char*> m_PData;        // 数据
 private:
 	size_t                 m_PDataSize;    // 数据长度
-	std::string            m_strPackage;   // 字符化包数据
+	PBYTE                  m_strPackage;   // 字符化包数据
 	BOOL                   m_PackIsChange; // 包是否发生变化，TRUE 发生变化 FALSE 未发生变化
 };
 #pragma pack(pop) // 将自定义对齐系数出栈，恢复默认对齐方式

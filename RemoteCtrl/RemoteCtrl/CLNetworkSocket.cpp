@@ -89,7 +89,9 @@ int CTCP::Send(const PBYTE& buffer, size_t BufSize)
 	while (buflen > 0) {
 		ret = send(m_jointSock, (char*)(buffer + index), buflen, 0);
 		if (ret < 0) {
-			CLTools::ErrorOut("数据发送失败！", __FILE__, __LINE__);
+			CString str;
+			str.Format("数据发送失败! lasterror:%d", WSAGetLastError());
+			CLTools::ErrorOut(str, __FILE__, __LINE__);
 			index *= -1;
 			break;
 		}

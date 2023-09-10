@@ -24,16 +24,16 @@ CLComDispose::~CLComDispose()
 void CLComDispose::Accept()
 {
 	int TestCount = 0;
+	CString str;
 	while (true) {
 		m_sock.Joint(4);
 		if (Recv() < 0)
 			break;
 		ComDis();
 		m_sock.CloseJointSock();
-		TestCount++;
-		std::cout << "处理第" << TestCount << "个连接命令请求\n";
+		str.Format("处理第%d个连接命令请求\r\n", ++TestCount);
+		OutputDebugString(str);
 	}
-	
 }
 
 void CLComDispose::ComDis()
@@ -143,7 +143,7 @@ void CLComDispose::getDrive()
 		return;
 	}
 	else {
-		m_pack = CLPackage(COM_GETDRIVE, DriInfo.c_str());
+		m_pack = CLPackage(COM_GETDRIVE, DriInfo.c_str(), DriInfo.size());
 	}
 	FindVolumeClose(FindDriHandle);
 	if (Send() < 0) {
@@ -153,43 +153,56 @@ void CLComDispose::getDrive()
 
 void CLComDispose::getFile()
 {
-	std::string dir = m_pack.GetData(); dir += '*';
-	WIN32_FIND_DATA fileInfo = {};
-	std::string strFileInfos;
+	std::string dir = m_pack.GetData(); dir += '*'; //对文件目录进行处理
+	WIN32_FIND_DATA fileInfo = {}; // 保存查询到的文件信息
+	BYTE strFileInfos[sizeof(FILEINFO) * 13] = ""; // 保存文件信息字符串流
 	BOOL ret = FALSE;
 	HANDLE findFileHandle = FindFirstFile(dir.c_str(), &fileInfo);
-	if (findFileHandle == INVALID_HANDLE_VALUE) {
+	if (findFileHandle == INVALID_HANDLE_VALUE) { // 目录获取失败，发送终止信息
 		CLTools::ErrorOut("文件夹打开失败！", __FILE__, __LINE__);
 		FILEINFO fileinfo;
-		m_pack = CLPackage(COM_GETFILE, &fileinfo);
+		fileinfo.MemStream(strFileInfos);
+		m_pack = CLPackage(COM_GETFILE, (char*)strFileInfos, sizeof(fileinfo));
 		if (Send() < 0) {
 			CLTools::ErrorOut("getFile send error!", __FILE__, __LINE__);
 		}
 		return;
 	}
+	// 查找目录下的文件和文件夹
+	int count = 0;
+	int cun = 0;
 	do {
 		FILEINFO _fileinfo(fileInfo.cFileName, fileInfo.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY, fileInfo.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN, FALSE);
-		strFileInfos += &_fileinfo;
-		strFileInfos += ',';
-		ret = FindNextFile(findFileHandle, &fileInfo);
-		if (strFileInfos.size() > 800) {
-			m_pack = CLPackage(COM_GETFILE, strFileInfos.c_str());
+		_fileinfo.MemStream(strFileInfos + sizeof(FILEINFO) * count); // 添加到内存流中
+		count++;
+		if (count == 13) {
+			m_pack = CLPackage(COM_GETFILE, (char*)strFileInfos, sizeof(strFileInfos));
 			if (Send() < 0) {
 				CLTools::ErrorOut("getFile send error!", __FILE__, __LINE__);
 			}
-			strFileInfos.clear();
+			memset(strFileInfos, 0, sizeof(strFileInfos));
+			count = 0;
 		}
+		ret = FindNextFile(findFileHandle, &fileInfo);
+		Sleep(1);
+		cun++;
 	} while (ret);
 	if (GetLastError() != ERROR_NO_MORE_FILES) {
 		CLTools::ErrorOut("文件夹读取失败！", __FILE__, __LINE__);
 	}
 	FindClose(findFileHandle);
+	// 最后一个终止信息
 	FILEINFO fileinfo;
-	strFileInfos += &fileinfo;
-	m_pack = CLPackage(COM_GETFILE, strFileInfos.c_str());
+	fileinfo.MemStream(strFileInfos + sizeof(FILEINFO) * count);
+	count++;
+	m_pack = CLPackage(COM_GETFILE, (char*)strFileInfos, sizeof(fileinfo) * count);
 	if (Send() < 0) {
 		CLTools::ErrorOut("getFile send error!", __FILE__, __LINE__);
 	}
+	CString str;
+	str.Format("一个%d个文件和文件夹", ++cun);
+	CLTools::ErrorOut(str, __FILE__, __LINE__);
+	Sleep(10);
 }
 
 void CLComDispose::fileDownload()
