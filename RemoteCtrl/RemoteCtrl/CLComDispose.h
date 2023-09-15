@@ -27,7 +27,8 @@ public:
 	// 获取卷响应函数
 	void getDrive();
 	// 获取文件响应函数
-	void getFile();
+	// isOnlyGetFile：是否只获取文件不获取文件夹 false 不是 true 是
+	void getFile(bool isOnlyGetFile = false);
 	// 文件下载响应函数
 	void fileDownload();
 	// 文件上传响应函数

@@ -62,6 +62,7 @@ void CRemoteCtrlClientDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialogEx::DoDataExchange(pDX);
 	DDX_Control(pDX, IDC_TREE_DRIVE, m_TreeDrive);
+	DDX_Control(pDX, IDC_LIST_FILEINFO, m_FileList);
 }
 
 BEGIN_MESSAGE_MAP(CRemoteCtrlClientDlg, CDialogEx)
@@ -73,6 +74,8 @@ BEGIN_MESSAGE_MAP(CRemoteCtrlClientDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_BUT_TESTLINK, &CRemoteCtrlClientDlg::OnBnClickedButTestlink)
 	ON_BN_CLICKED(IDC_BUT_GETDRIVE, &CRemoteCtrlClientDlg::OnBnClickedButGetdrive)
 	ON_NOTIFY(NM_DBLCLK, IDC_TREE_DRIVE, &CRemoteCtrlClientDlg::OnNMDblclkTreeDrive)
+	ON_NOTIFY(NM_CLICK, IDC_TREE_DRIVE, &CRemoteCtrlClientDlg::OnNMClickTreeDrive)
+	ON_NOTIFY(NM_RCLICK, IDC_LIST_FILEINFO, &CRemoteCtrlClientDlg::OnNMRClickListFileinfo)
 END_MESSAGE_MAP()
 
 
@@ -172,7 +175,10 @@ HCURSOR CRemoteCtrlClientDlg::OnQueryDragIcon()
 
 HTREEITEM CRemoteCtrlClientDlg::GetSelectedDir(CString& str)
 {
-	HTREEITEM hTree = m_TreeDrive.GetSelectedItem();
+	CPoint ptMouse;
+	GetCursorPos(&ptMouse);
+	m_TreeDrive.ScreenToClient(&ptMouse);
+	HTREEITEM hTree = m_TreeDrive.HitTest(ptMouse, 0);
 	if (hTree == NULL)
 		return NULL;
 	HTREEITEM hParent = hTree;
@@ -185,6 +191,19 @@ HTREEITEM CRemoteCtrlClientDlg::GetSelectedDir(CString& str)
 		}
 	} while (hParent);
 	return hTree;
+}
+
+void CRemoteCtrlClientDlg::DeleteTreeChildItem(HTREEITEM hItem)
+{
+	if (m_TreeDrive.ItemHasChildren(hItem)) {
+		HTREEITEM hNextItem;
+		HTREEITEM hChildItem = m_TreeDrive.GetChildItem(hItem);
+		while (hChildItem != NULL) {
+			hNextItem = m_TreeDrive.GetNextItem(hChildItem, TVGN_NEXT);
+			m_TreeDrive.DeleteItem(hChildItem);
+			hChildItem = hNextItem;
+		}
+	}
 }
 
 void CRemoteCtrlClientDlg::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags)
@@ -225,6 +244,7 @@ void CRemoteCtrlClientDlg::OnBnClickedButTestlink()
 
 void CRemoteCtrlClientDlg::OnBnClickedButGetdrive()
 {
+	m_FileList.DeleteAllItems();
 	CLRCCliControl* pControl = CLRCCliControl::getInstance();
 	pControl->SetPackage(COM_GETDRIVE);
 	if (pControl->Send() > 0) {
@@ -242,7 +262,8 @@ void CRemoteCtrlClientDlg::OnBnClickedButGetdrive()
 				if (str[i] == ',')
 					continue;
 				drive.Format("%c:", str[i]);
-				HTREEITEM hPA = m_TreeDrive.InsertItem(drive);
+				//HTREEITEM hPA = m_TreeDrive.InsertItem(drive);
+				m_TreeDrive.InsertItem(drive, TVI_ROOT, TVI_LAST);
 			}
 		}
 	}
@@ -251,16 +272,15 @@ void CRemoteCtrlClientDlg::OnBnClickedButGetdrive()
 void CRemoteCtrlClientDlg::OnNMDblclkTreeDrive(NMHDR* pNMHDR, LRESULT* pResult)
 {
 
-	
+	*pResult = 0;
 	CString str;
 	HTREEITEM hTree = GetSelectedDir(str);
 	if (hTree == NULL) {
 		CLTools::ErrorOut("未选中控件!", __FILE__, __LINE__);
 		return;
 	}
-	m_TreeDrive.Expand(hTree, TVE_COLLAPSERESET); // 折叠并删除子项
-	/*str += "\r\n";
-	OutputDebugString(str);*/
+	DeleteTreeChildItem(hTree);
+	m_FileList.DeleteAllItems();
 	CLRCCliControl* pControl = CLRCCliControl::getInstance();
 	pControl->SetPackage(COM_GETFILE, str);
 	INT ret = pControl->Send();
@@ -268,7 +288,9 @@ void CRemoteCtrlClientDlg::OnNMDblclkTreeDrive(NMHDR* pNMHDR, LRESULT* pResult)
 		CLTools::ErrorOut("数据包发送失败！", __FILE__, __LINE__);
 	}
 	INT index = 0;
-	INT count = 0;
+	INT nCol = 0;
+	INT islast = 0;
+	FILEINFO finfo;
 	do {
 		index = pControl->Recv(FALSE, index);
 		if (index < 0)
@@ -277,47 +299,76 @@ void CRemoteCtrlClientDlg::OnNMDblclkTreeDrive(NMHDR* pNMHDR, LRESULT* pResult)
 		if (pack.GetCmd() == COM_GETFILE) {
 			char* finfos = (char*)pack.GetData();
 			size_t finfosSize = pack.GetDataSize();
-			for (int i = 0; i < finfosSize / sizeof(FILEINFO); i++) {
-				PFILEINFO finfo = (PFILEINFO)(finfos + sizeof(FILEINFO) * i);
-				if (finfo->m_isDir) {
-					m_TreeDrive.InsertItem(finfo->m_fileName, hTree, TVI_SORT);
-					count++;
+			for (int i = 0; i < finfosSize / FILEINFO::getSize(); i++) {
+				finfo = (finfos + FILEINFO::getSize() * i);
+				if (finfo.m_isLast) {
+					islast = 1;
+					break;
 				}
-				else if(!finfo->m_isDir)
-					count++;
+				if (finfo.m_isDir) {
+					m_TreeDrive.InsertItem(finfo.m_fileName, hTree, TVI_LAST); // TVI_SORT按字母顺序插入
+				}
+				else {
+					//m_FileList.InsertItem(nCol++, finfo->m_fileName);
+					m_FileList.InsertItem(nCol++, finfo.m_fileName);
+				}
 			}
 		}
-	} while (index >= 0);
+	} while (!islast || index >= 0);
 	pControl->Close();
 	m_TreeDrive.Expand(hTree, TVE_EXPAND); // 展开子项
-	str.Format("一共%d个文件夹", count);
-	CLTools::ErrorOut(str, __FILE__, __LINE__);
-	/*
-	// TODO: 在此添加控件通知处理程序代码
-	
-	//CLTools::ErrorOut(str, __FILE__, __LINE__);
-	m_TreeDrive.Expand(hTree, TVE_COLLAPSERESET); // 折叠并删除子项
-	
-	
-	if (pControl->Send() > 0) {
-		PFILEINFO finfo = {};
-		int index = 0;
-		do {
-			index = pControl->Recv(FALSE, index);
-			CLPackage pack = pControl->GetPackage();
-			if (pack.GetCmd() == COM_GETFILE) {
-				char* finfos = (char*)pack.GetData();
-				size_t finfosSize = pack.GetDataSize();
-				for (int i = 0; i < finfosSize / sizeof(FILEINFO); i++) {
-					finfo = (PFILEINFO)(finfos + sizeof(FILEINFO) * i);
-					if (finfo->m_isDir) {
-						m_TreeDrive.InsertItem(finfo->m_fileName, hTree, TVI_SORT);
-					}
-				}
-			}
-		} while (!finfo->m_isLast);
-		pControl->Close();
-		m_TreeDrive.Expand(hTree, TVE_EXPAND); // 展开子项
-	}*/
+}
+
+
+void CRemoteCtrlClientDlg::OnNMClickTreeDrive(NMHDR* pNMHDR, LRESULT* pResult)
+{
 	*pResult = 0;
+	CString str;
+	HTREEITEM hTree = GetSelectedDir(str);
+	if (!m_TreeDrive.ItemHasChildren(hTree)) { // 不存在子级，就不需要更新文件列表
+		return;
+	}
+	m_FileList.DeleteAllItems();
+	CLRCCliControl* pControl = CLRCCliControl::getInstance();
+	pControl->SetPackage(COM_GETFILES, str);
+	INT ret = pControl->Send();
+	if (ret < 0) {
+		CLTools::ErrorOut("数据包发送失败！", __FILE__, __LINE__);
+	}
+	INT index = 0;
+	INT nCol = 0;
+	INT islast = 0;
+	do {
+		index = pControl->Recv(FALSE, index);
+		if (index < 0)
+			break;
+		CLPackage& pack = pControl->GetPackage();
+		if (pack.GetCmd() == COM_GETFILES) {
+			char* finfos = (char*)pack.GetData();
+			size_t finfosSize = pack.GetDataSize();
+			for (int i = 0; i < finfosSize / FILEINFO::getSize(); i++) {
+				PFILEINFO finfo = (PFILEINFO)(finfos + FILEINFO::getSize() * i);
+				if (finfo->m_isLast) {
+					islast = 1;
+					break;
+				}
+				m_FileList.InsertItem(nCol++, finfo->m_fileName);
+			}
+		}
+	} while (!islast || index >= 0);
+	pControl->Close();
+}
+
+void CRemoteCtrlClientDlg::OnNMRClickListFileinfo(NMHDR* pNMHDR, LRESULT* pResult)
+{
+	LPNMITEMACTIVATE pNMItemActivate = reinterpret_cast<LPNMITEMACTIVATE>(pNMHDR);
+	// TODO: 在此添加控件通知处理程序代码
+	*pResult = 0;
+	if (m_FileList.GetSelectedCount() <= 0) // 判断当前是否有选定项
+		return;
+	CString str = m_FileList.GetItemText(m_FileList.GetSelectionMark(), 0); // 获取右键选定的项
+	CMenu m_menu;
+	m_menu.LoadMenuA(IDR_MENU_FILEDIS);
+	SetMenu(&m_menu);
+	m_menu.TrackPopupMenu(TPM_LEFTALIGN, 255, 255, GetWindow(GW_CHILD));
 }

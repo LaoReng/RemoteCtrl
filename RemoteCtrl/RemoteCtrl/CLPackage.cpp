@@ -139,7 +139,7 @@ CLPackage::~CLPackage()
 		m_PData.reset();
 		delete[] pStr;
 	}
-    if (m_strPackage)
+	if (m_strPackage)
 		delete[] m_strPackage;
 }
 
@@ -151,7 +151,7 @@ void CLPackage::SetCmd(unsigned short cmd)
 
 void CLPackage::SetData(const char* data)
 {
-	if (data) {		
+	if (data) {
 		if (!m_PData) {
 
 			m_PData = std::make_shared<char*>(new char[m_PDataSize + 1]{ 0 });
@@ -174,7 +174,7 @@ unsigned short CLPackage::GetCmd() const
 
 const char* CLPackage::GetData() const
 {
-    if (m_PData == NULL || (*m_PData) == NULL)
+	if (m_PData == NULL || (*m_PData) == NULL)
 		return NULL;
 	return *m_PData;
 }
@@ -256,7 +256,20 @@ void CLPackage::Value2MemValue(PBYTE mem, unsigned int value, size_t ValueSize)
 
 fileInfo::fileInfo(const char* filename, BOOL isdir, BOOL ishidden, BOOL islast)
 {
-	memcpy(m_fileName, filename, strlen(filename));
+	m_fileName = new char[FILESIZE] {};
+	if (filename)
+		memcpy(m_fileName, filename, FILESIZE - 1);
+	// TODO:这文件名的长度存在问题
+	m_isDir = isdir;
+	m_isHidden = ishidden;
+	m_isLast = islast;
+}
+
+void fileInfo::setAll(const char* filename, BOOL isdir, BOOL ishidden, BOOL islast)
+{
+	memset(m_fileName, 0, FILESIZE);
+	if (filename)
+		memcpy(m_fileName, filename, 49);
 	m_isDir = isdir;
 	m_isHidden = ishidden;
 	m_isLast = islast;
@@ -274,8 +287,8 @@ fileInfo::fileInfo(const char* filename, BOOL isdir, BOOL ishidden, BOOL islast)
 void fileInfo::MemStream(PBYTE mem)
 {
 	int index = 0;
-	memcpy(mem, m_fileName, sizeof(m_fileName));
-	index += sizeof(m_fileName);
+	memcpy(mem, m_fileName, FILESIZE);
+	index += FILESIZE;
 	PBYTE byte = (PBYTE)&m_isDir;
 	for (int i = 0; i < sizeof(BOOL) * 3; i++) {
 		mem[index + i] = byte[i];

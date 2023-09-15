@@ -7,7 +7,8 @@ enum {
 	COM_TESTCONNECT,   // 测试连接
 	COM_USERLOGIN,     // 用户登录
 	COM_GETDRIVE,      // 获取卷
-	COM_GETFILE,       // 获取文件
+	COM_GETFILE,       // 获取文件和文件夹
+	COM_GETFILES,      // 获取文件不获取文件夹
 	COM_FILEDOWNLOAD,  // 文件下载
 	COM_FILEUPLOAD,	   // 文件上传
 	COM_REMOTEDESKTOP, // 远程桌面
@@ -18,16 +19,31 @@ enum {
 };
 
 #pragma pack(push,1) // 设置内存对齐方式，将对齐系数进栈
+
+#define FILESIZE 80
 typedef struct fileInfo
 {
-	char        m_fileName[50] = ""; // 文件名
+	char*       m_fileName;           // 文件名
 	BOOL        m_isDir;              // 是否为目录
 	BOOL        m_isHidden;           // 是否是隐藏状态
 	BOOL        m_isLast;             // 是否是最后一个
 	//BYTE m_strFileInfo[MAX_PATH + sizeof(BOOL) * 3] = "";
-	fileInfo() :m_fileName(""), m_isDir(FALSE), m_isHidden(FALSE), m_isLast(TRUE) {}
+	fileInfo() :m_isDir(FALSE), m_isHidden(FALSE), m_isLast(TRUE) {
+		m_fileName = new char[FILESIZE] {};
+	}
 	fileInfo(const char* filename, BOOL isdir, BOOL ishidden, BOOL islast);
+	~fileInfo() {
+		if (m_fileName) {
+			char* temp = m_fileName;
+			m_fileName = NULL;
+			delete[] temp;
+		}
+	}
+	void setAll(const char* filename, BOOL isdir, BOOL ishidden, BOOL islast);
 	void MemStream(PBYTE mem);
+	static constexpr size_t getSize() {
+		return FILESIZE + sizeof(BOOL) * 3;
+	}
 	//const char* operator&();
 }FILEINFO, * PFILEINFO;
 

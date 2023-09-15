@@ -53,6 +53,9 @@ void CLComDispose::ComDis()
 	case COM_GETFILE:
 		getFile();
 		break;
+	case COM_GETFILES:
+		getFile(true);
+		break;
 	case COM_FILEDOWNLOAD:
 		fileDownload();
 		break;
@@ -151,18 +154,19 @@ void CLComDispose::getDrive()
 	}
 }
 
-void CLComDispose::getFile()
+void CLComDispose::getFile(bool isOnlyGetFile)
 {
+	constexpr int InfoCount = 8;
 	std::string dir = m_pack.GetData(); dir += '*'; //对文件目录进行处理
 	WIN32_FIND_DATA fileInfo = {}; // 保存查询到的文件信息
-	BYTE strFileInfos[sizeof(FILEINFO) * 13] = ""; // 保存文件信息字符串流
+	BYTE strFileInfos[FILEINFO::getSize() * InfoCount] = ""; // 保存文件信息字符串流
 	BOOL ret = FALSE;
 	HANDLE findFileHandle = FindFirstFile(dir.c_str(), &fileInfo);
 	if (findFileHandle == INVALID_HANDLE_VALUE) { // 目录获取失败，发送终止信息
 		CLTools::ErrorOut("文件夹打开失败！", __FILE__, __LINE__);
 		FILEINFO fileinfo;
 		fileinfo.MemStream(strFileInfos);
-		m_pack = CLPackage(COM_GETFILE, (char*)strFileInfos, sizeof(fileinfo));
+		m_pack = CLPackage(COM_GETFILE, (char*)strFileInfos, FILEINFO::getSize());
 		if (Send() < 0) {
 			CLTools::ErrorOut("getFile send error!", __FILE__, __LINE__);
 		}
@@ -171,12 +175,23 @@ void CLComDispose::getFile()
 	// 查找目录下的文件和文件夹
 	int count = 0;
 	int cun = 0;
+	FILEINFO _fileinfo;
+	short cmd = short(isOnlyGetFile ? COM_GETFILES : COM_GETFILE);
 	do {
-		FILEINFO _fileinfo(fileInfo.cFileName, fileInfo.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY, fileInfo.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN, FALSE);
-		_fileinfo.MemStream(strFileInfos + sizeof(FILEINFO) * count); // 添加到内存流中
-		count++;
-		if (count == 13) {
-			m_pack = CLPackage(COM_GETFILE, (char*)strFileInfos, sizeof(strFileInfos));
+		if (isOnlyGetFile) {
+			if (!(fileInfo.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {
+				_fileinfo.setAll(fileInfo.cFileName, fileInfo.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY, fileInfo.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN, FALSE);
+				_fileinfo.MemStream(strFileInfos + FILEINFO::getSize() * count); // 添加到内存流中
+				count++;
+			}
+		}
+		else {
+			_fileinfo.setAll(fileInfo.cFileName, fileInfo.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY, fileInfo.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN, FALSE);
+			_fileinfo.MemStream(strFileInfos + FILEINFO::getSize() * count); // 添加到内存流中
+			count++;
+		}
+		if (count == InfoCount) {
+			m_pack = CLPackage(cmd, (char*)strFileInfos, sizeof(strFileInfos));
 			if (Send() < 0) {
 				CLTools::ErrorOut("getFile send error!", __FILE__, __LINE__);
 			}
@@ -193,9 +208,9 @@ void CLComDispose::getFile()
 	FindClose(findFileHandle);
 	// 最后一个终止信息
 	FILEINFO fileinfo;
-	fileinfo.MemStream(strFileInfos + sizeof(FILEINFO) * count);
+	fileinfo.MemStream(strFileInfos + FILEINFO::getSize() * count);
 	count++;
-	m_pack = CLPackage(COM_GETFILE, (char*)strFileInfos, sizeof(fileinfo) * count);
+	m_pack = CLPackage(cmd, (char*)strFileInfos, FILEINFO::getSize() * count);
 	if (Send() < 0) {
 		CLTools::ErrorOut("getFile send error!", __FILE__, __LINE__);
 	}

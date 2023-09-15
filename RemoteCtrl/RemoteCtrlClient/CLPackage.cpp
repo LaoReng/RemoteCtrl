@@ -24,7 +24,7 @@ CLPackage::CLPackage(unsigned short cmd, const char* data, size_t dataSize)
 {
 	if (data) {
 		if (!dataSize)
-			static_assert(true, "数据长度必须大于0");
+			MessageBox(NULL, "数据长度不应为0！", "错误", MB_OK | MB_ICONERROR);
 		m_PDataSize = dataSize;
 		m_PData = std::make_shared<char*>(new char[BUFSIZE] { 0 });
 		memcpy(*m_PData, data, m_PDataSize);
@@ -140,7 +140,7 @@ CLPackage::~CLPackage()
 		delete[] pStr;
 	}
 	if (m_strPackage)
-			delete[] m_strPackage;
+		delete[] m_strPackage;
 }
 
 void CLPackage::SetCmd(unsigned short cmd)
@@ -151,8 +151,7 @@ void CLPackage::SetCmd(unsigned short cmd)
 
 void CLPackage::SetData(const char* data)
 {
-
-	if (data) {		
+	if (data) {
 		if (!m_PData) {
 
 			m_PData = std::make_shared<char*>(new char[m_PDataSize + 1]{ 0 });
@@ -257,26 +256,30 @@ void CLPackage::Value2MemValue(PBYTE mem, unsigned int value, size_t ValueSize)
 
 fileInfo::fileInfo(const char* filename, BOOL isdir, BOOL ishidden, BOOL islast)
 {
-	memcpy(m_fileName, filename, strlen(filename));
+	m_fileName = new char[FILESIZE] {};
+	if (filename)
+		memcpy(m_fileName, filename, FILESIZE - 1);
+	// TODO:这文件名的长度存在问题
 	m_isDir = isdir;
 	m_isHidden = ishidden;
 	m_isLast = islast;
 }
 
-/*const char* fileInfo::operator&()
+void fileInfo::setAll(const char* filename, BOOL isdir, BOOL ishidden, BOOL islast)
 {
-	m_strFileInfo += m_fileName;
-	m_strFileInfo += m_isDir;
-	m_strFileInfo += m_isHidden;
-	m_strFileInfo += m_isLast;
-	return m_strFileInfo.c_str();
-}*/
+	memset(m_fileName, 0, FILESIZE);
+	if (filename)
+		memcpy(m_fileName, filename, 49);
+	m_isDir = isdir;
+	m_isHidden = ishidden;
+	m_isLast = islast;
+}
 
 void fileInfo::MemStream(PBYTE mem)
 {
 	int index = 0;
-	memcpy(mem, m_fileName, sizeof(m_fileName));
-	index += sizeof(m_fileName);
+	memcpy(mem, m_fileName, FILESIZE);
+	index += FILESIZE;
 	PBYTE byte = (PBYTE)&m_isDir;
 	for (int i = 0; i < sizeof(BOOL) * 3; i++) {
 		mem[index + i] = byte[i];
