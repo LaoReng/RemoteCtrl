@@ -10,6 +10,7 @@ enum {
 	COM_GETFILE,       // 获取文件和文件夹
 	COM_GETFILES,      // 获取文件不获取文件夹
 	COM_FILEDOWNLOAD,  // 文件下载
+	COM_FILEDELETE,    // 文件删除
 	COM_FILEUPLOAD,	   // 文件上传
 	COM_REMOTEDESKTOP, // 远程桌面
 	COM_MOUSEEVENT,    // 鼠标消息

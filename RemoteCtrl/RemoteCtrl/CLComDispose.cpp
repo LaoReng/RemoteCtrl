@@ -59,6 +59,9 @@ void CLComDispose::ComDis()
 	case COM_FILEDOWNLOAD:
 		fileDownload();
 		break;
+	case COM_FILEDELETE:
+		fileDelete();
+		break;
 	case COM_FILEUPLOAD:
 		fileUpload();
 		break;
@@ -198,9 +201,9 @@ void CLComDispose::getFile(bool isOnlyGetFile)
 			memset(strFileInfos, 0, sizeof(strFileInfos));
 			count = 0;
 		}
+		cun++;
 		ret = FindNextFile(findFileHandle, &fileInfo);
 		Sleep(1);
-		cun++;
 	} while (ret);
 	if (GetLastError() != ERROR_NO_MORE_FILES) {
 		CLTools::ErrorOut("文件夹读取失败！", __FILE__, __LINE__);
@@ -215,7 +218,7 @@ void CLComDispose::getFile(bool isOnlyGetFile)
 		CLTools::ErrorOut("getFile send error!", __FILE__, __LINE__);
 	}
 	CString str;
-	str.Format("一个%d个文件和文件夹", ++cun);
+	str.Format("一个%d个文件和文件夹", cun);
 	CLTools::ErrorOut(str, __FILE__, __LINE__);
 	Sleep(10);
 }
@@ -243,8 +246,9 @@ void CLComDispose::fileDownload()
 	}
 	char buffer[1000] = ""; // 文件数据缓冲区
 	DWORD RLen = {};        // ReadFile() 读取到的数据大小
+	_ultoa(FileSize, buffer, 10);
 	// 发送文件的大小
-	m_pack = CLPackage(COM_FILEDOWNLOAD, _ultoa(FileSize, buffer, 10));
+	m_pack = CLPackage(COM_FILEDOWNLOAD, buffer, strlen(buffer));
 	if (Send() < 0) {
 		CLTools::ErrorOut("fileDownload send error!", __FILE__, __LINE__);
 	}
@@ -254,13 +258,27 @@ void CLComDispose::fileDownload()
 			CLTools::ErrorOut("文件读取失败！", __FILE__, __LINE__);
 			break;
 		}
-		m_pack = CLPackage(COM_FILEDOWNLOAD, buffer);
+		m_pack = CLPackage(COM_FILEDOWNLOAD, buffer, RLen);
 		if (Send() < 0) {
 			CLTools::ErrorOut("fileDownload send error!", __FILE__, __LINE__);
 		}
 		FileSize -= RLen;
 	} while (FileSize > 0);
 	CloseHandle(hFile);
+}
+
+void CLComDispose::fileDelete()
+{
+	BOOL ret = DeleteFile(m_pack.GetData());
+	if (ret == TRUE) {
+		m_pack = CLPackage(COM_FILEDELETE, "OK", 2);
+	}
+	else {
+		m_pack = CLPackage(COM_FILEDELETE);
+	}
+	if (Send() < 0) {
+		CLTools::ErrorOut("fileDelete send error!", __FILE__, __LINE__);
+	}
 }
 
 void CLComDispose::fileUpload()

@@ -27,7 +27,8 @@ private:
 	CTreeCtrl m_TreeDrive;
 	// 文件列表控件
 	CListCtrl m_FileList;
-
+	// 文件列表菜单控件
+	CMenu m_menu;
 // 实现
 protected:
 	HICON m_hIcon;
@@ -43,9 +44,11 @@ private:
 	HTREEITEM GetSelectedDir(CString& str);
 	// 删除文件树指定项的子级
 	void DeleteTreeChildItem(HTREEITEM hItem);
+	// 设置菜单控件文件操作菜单栏的状态
+	// IsForbidden：是否禁用菜单，TRUE 禁用菜单 FALSE 启用菜单
+	void SetMenuState(BOOL IsForbidden = TRUE);
 public:
 	afx_msg void OnChar(UINT nChar, UINT nRepCnt, UINT nFlags);
-	afx_msg void OnBnClickedOk();
 	// 点击测试连接按钮，响应函数
 	afx_msg void OnBnClickedButTestlink();
 	// 点击卷获取按钮，响应函数
@@ -54,6 +57,14 @@ public:
 	afx_msg void OnNMDblclkTreeDrive(NMHDR* pNMHDR, LRESULT* pResult);
 	// 单击文件树里的项，更新文件列表，响应函数
 	afx_msg void OnNMClickTreeDrive(NMHDR* pNMHDR, LRESULT* pResult);
-	// List Control里用户右键单击了项，响应函数
-	afx_msg void OnNMRClickListFileinfo(NMHDR* pNMHDR, LRESULT* pResult);
+	// List Control里用户左键单击了项，响应函数
+	afx_msg void OnNMClickListFileinfo(NMHDR* pNMHDR, LRESULT* pResult);
+	// 点击网络菜单的设置网络选项，响应函数
+	afx_msg void OnSetnetwork();
+	// 点击文件菜单的文件下载选项，响应函数
+	afx_msg void OnDownloadfile();
+	// 点击文件菜单的文件删除选项，响应函数
+	afx_msg void OnDeletefile();
+	// 点击文件菜单的文件上传选项，响应函数
+	afx_msg void OnUploadfile();
 };

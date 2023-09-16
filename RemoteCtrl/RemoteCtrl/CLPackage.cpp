@@ -23,7 +23,7 @@ CLPackage::CLPackage(unsigned short cmd, const char* data, size_t dataSize)
 	, m_PackIsChange(TRUE)
 {
 	if (data) {
-		if (!dataSize)
+ 		if (!dataSize)
 			MessageBox(NULL, "数据长度不应为0！", "错误", MB_OK | MB_ICONERROR);
 		m_PDataSize = dataSize;
 		m_PData = std::make_shared<char*>(new char[BUFSIZE] { 0 });

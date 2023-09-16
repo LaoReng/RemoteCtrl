@@ -56,6 +56,7 @@ CRemoteCtrlClientDlg::CRemoteCtrlClientDlg(CWnd* pParent /*=nullptr*/)
 	, m_SockInfo(this)
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
+	m_menu.LoadMenuA(IDR_MENU_FILEDIS);
 }
 
 void CRemoteCtrlClientDlg::DoDataExchange(CDataExchange* pDX)
@@ -70,12 +71,15 @@ BEGIN_MESSAGE_MAP(CRemoteCtrlClientDlg, CDialogEx)
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
 	ON_WM_CHAR()
-	ON_BN_CLICKED(IDOK, &CRemoteCtrlClientDlg::OnBnClickedOk)
 	ON_BN_CLICKED(IDC_BUT_TESTLINK, &CRemoteCtrlClientDlg::OnBnClickedButTestlink)
 	ON_BN_CLICKED(IDC_BUT_GETDRIVE, &CRemoteCtrlClientDlg::OnBnClickedButGetdrive)
 	ON_NOTIFY(NM_DBLCLK, IDC_TREE_DRIVE, &CRemoteCtrlClientDlg::OnNMDblclkTreeDrive)
 	ON_NOTIFY(NM_CLICK, IDC_TREE_DRIVE, &CRemoteCtrlClientDlg::OnNMClickTreeDrive)
-	ON_NOTIFY(NM_RCLICK, IDC_LIST_FILEINFO, &CRemoteCtrlClientDlg::OnNMRClickListFileinfo)
+	ON_NOTIFY(NM_CLICK, IDC_LIST_FILEINFO, &CRemoteCtrlClientDlg::OnNMClickListFileinfo)
+	ON_COMMAND(ID_SETNETWORK, &CRemoteCtrlClientDlg::OnSetnetwork)
+	ON_COMMAND(ID_DOWNLOADFILE, &CRemoteCtrlClientDlg::OnDownloadfile)
+	ON_COMMAND(ID_DELETEFILE, &CRemoteCtrlClientDlg::OnDeletefile)
+	ON_COMMAND(ID_UPLOADFILE, &CRemoteCtrlClientDlg::OnUploadfile)
 END_MESSAGE_MAP()
 
 
@@ -115,9 +119,13 @@ BOOL CRemoteCtrlClientDlg::OnInitDialog()
 	//ShowWindow(SW_MINIMIZE); // 窗口最小化
 
 	// TODO: 在此添加额外的初始化代码
-	/*// 非模态对话框
+	/*// 非模态对话框创建
 	m_SockInfo.Create(IDD_DLG_SOCKINFO, this);
-	m_SockInfo.ShowWindow(SW_HIDE);*/
+	m_SockInfo.ShowWindow(SW_HIDE); // SW_HIDE 隐藏对话框
+	*/
+
+	SetMenu(&m_menu); // 为窗口设置菜单
+	SetMenuState(); // 设置文件菜单状态
 
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
 }
@@ -171,16 +179,16 @@ HCURSOR CRemoteCtrlClientDlg::OnQueryDragIcon()
 	return static_cast<HCURSOR>(m_hIcon);
 }
 
-
-
 HTREEITEM CRemoteCtrlClientDlg::GetSelectedDir(CString& str)
 {
 	CPoint ptMouse;
 	GetCursorPos(&ptMouse);
 	m_TreeDrive.ScreenToClient(&ptMouse);
 	HTREEITEM hTree = m_TreeDrive.HitTest(ptMouse, 0);
-	if (hTree == NULL)
-		return NULL;
+	if (hTree == NULL) {
+		if (NULL == (hTree = m_TreeDrive.GetSelectedItem()))
+			return NULL;
+	}
 	HTREEITEM hParent = hTree;
 	str = m_TreeDrive.GetItemText(hParent);
 	str += "\\";
@@ -206,23 +214,24 @@ void CRemoteCtrlClientDlg::DeleteTreeChildItem(HTREEITEM hItem)
 	}
 }
 
+void CRemoteCtrlClientDlg::SetMenuState(BOOL IsForbidden)
+{
+	long nEnable = IsForbidden ? MF_GRAYED : MF_ENABLED; // 启用还是禁用文件菜单
+	// 启用或禁用文件菜单
+	if (m_menu.GetMenuState(ID_DOWNLOADFILE, MF_BYCOMMAND) != nEnable) {
+		m_menu.EnableMenuItem(ID_DOWNLOADFILE, nEnable);
+		m_menu.EnableMenuItem(ID_DELETEFILE, nEnable);
+		//m_menu.EnableMenuItem(ID_UPLOADFILE, nEnable);
+	}
+
+}
+
 void CRemoteCtrlClientDlg::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags)
 {
 	// TODO: 在此添加消息处理程序代码和/或调用默认值
 
 	CDialogEx::OnChar(nChar, nRepCnt, nFlags);
 }
-
-
-void CRemoteCtrlClientDlg::OnBnClickedOk()
-{
-	// TODO: 在此添加控件通知处理程序代码
-	/*//非模态对话框
-	m_SockInfo.CenterWindow();
-	m_SockInfo.ShowWindow(SW_SHOW);*/
-	m_SockInfo.DoModal();
-}
-
 
 void CRemoteCtrlClientDlg::OnBnClickedButTestlink()
 {
@@ -240,7 +249,6 @@ void CRemoteCtrlClientDlg::OnBnClickedButTestlink()
 	// 连接失败
 	MessageBox("连接失败", "失败", MB_OK | MB_ICONERROR);
 }
-
 
 void CRemoteCtrlClientDlg::OnBnClickedButGetdrive()
 {
@@ -271,7 +279,6 @@ void CRemoteCtrlClientDlg::OnBnClickedButGetdrive()
 
 void CRemoteCtrlClientDlg::OnNMDblclkTreeDrive(NMHDR* pNMHDR, LRESULT* pResult)
 {
-
 	*pResult = 0;
 	CString str;
 	HTREEITEM hTree = GetSelectedDir(str);
@@ -305,6 +312,8 @@ void CRemoteCtrlClientDlg::OnNMDblclkTreeDrive(NMHDR* pNMHDR, LRESULT* pResult)
 					islast = 1;
 					break;
 				}
+				if (!strcmp(finfo.m_fileName, ".") || !strcmp(finfo.m_fileName, ".."))
+					continue;
 				if (finfo.m_isDir) {
 					m_TreeDrive.InsertItem(finfo.m_fileName, hTree, TVI_LAST); // TVI_SORT按字母顺序插入
 				}
@@ -319,13 +328,17 @@ void CRemoteCtrlClientDlg::OnNMDblclkTreeDrive(NMHDR* pNMHDR, LRESULT* pResult)
 	m_TreeDrive.Expand(hTree, TVE_EXPAND); // 展开子项
 }
 
-
 void CRemoteCtrlClientDlg::OnNMClickTreeDrive(NMHDR* pNMHDR, LRESULT* pResult)
 {
 	*pResult = 0;
 	CString str;
 	HTREEITEM hTree = GetSelectedDir(str);
-	if (!m_TreeDrive.ItemHasChildren(hTree)) { // 不存在子级，就不需要更新文件列表
+	if (hTree == NULL) {
+		return;
+	}
+	UINT state = m_TreeDrive.GetItemState(hTree, TVIS_EXPANDED) & TVIS_EXPANDED; // 当前是展开在状态就返回TVIS_EXPANDED
+	if (state == TVIS_EXPANDED || !m_TreeDrive.ItemHasChildren(hTree)) { // 当前处于子项展开状态（处于展开就需要折叠）或者不存在子级，就不需要更新文件列表
+		m_FileList.DeleteAllItems();
 		return;
 	}
 	m_FileList.DeleteAllItems();
@@ -334,10 +347,12 @@ void CRemoteCtrlClientDlg::OnNMClickTreeDrive(NMHDR* pNMHDR, LRESULT* pResult)
 	INT ret = pControl->Send();
 	if (ret < 0) {
 		CLTools::ErrorOut("数据包发送失败！", __FILE__, __LINE__);
+		return;
 	}
 	INT index = 0;
 	INT nCol = 0;
 	INT islast = 0;
+	FILEINFO finfo;
 	do {
 		index = pControl->Recv(FALSE, index);
 		if (index < 0)
@@ -347,28 +362,135 @@ void CRemoteCtrlClientDlg::OnNMClickTreeDrive(NMHDR* pNMHDR, LRESULT* pResult)
 			char* finfos = (char*)pack.GetData();
 			size_t finfosSize = pack.GetDataSize();
 			for (int i = 0; i < finfosSize / FILEINFO::getSize(); i++) {
-				PFILEINFO finfo = (PFILEINFO)(finfos + FILEINFO::getSize() * i);
-				if (finfo->m_isLast) {
+				finfo = (finfos + FILEINFO::getSize() * i);
+				if (finfo.m_isLast) {
 					islast = 1;
 					break;
 				}
-				m_FileList.InsertItem(nCol++, finfo->m_fileName);
+				m_FileList.InsertItem(nCol++, finfo.m_fileName);
 			}
 		}
 	} while (!islast || index >= 0);
 	pControl->Close();
 }
 
-void CRemoteCtrlClientDlg::OnNMRClickListFileinfo(NMHDR* pNMHDR, LRESULT* pResult)
+void CRemoteCtrlClientDlg::OnNMClickListFileinfo(NMHDR* pNMHDR, LRESULT* pResult)
 {
 	LPNMITEMACTIVATE pNMItemActivate = reinterpret_cast<LPNMITEMACTIVATE>(pNMHDR);
 	// TODO: 在此添加控件通知处理程序代码
 	*pResult = 0;
-	if (m_FileList.GetSelectedCount() <= 0) // 判断当前是否有选定项
+	if (m_FileList.GetSelectedCount() <= 0) { // 判断当前是否有选定项
+		SetMenuState();
 		return;
-	CString str = m_FileList.GetItemText(m_FileList.GetSelectionMark(), 0); // 获取右键选定的项
-	CMenu m_menu;
-	m_menu.LoadMenuA(IDR_MENU_FILEDIS);
-	SetMenu(&m_menu);
-	m_menu.TrackPopupMenu(TPM_LEFTALIGN, 255, 255, GetWindow(GW_CHILD));
+	}
+	SetMenuState(FALSE);
+}
+
+void CRemoteCtrlClientDlg::OnSetnetwork()
+{
+	// TODO: 在此添加命令处理程序代码
+	TRACE("点击了设置网络\r\n");
+
+	/*//非模态对话框
+	m_SockInfo.CenterWindow();
+	m_SockInfo.ShowWindow(SW_SHOW);*/
+	m_SockInfo.DoModal();
+}
+
+void CRemoteCtrlClientDlg::OnDownloadfile()
+{
+	// TODO: 在此添加命令处理程序代码
+	CString FileName = m_FileList.GetItemText(m_FileList.GetSelectionMark(), 0); // 获取右键选定的项文本及路径
+	CFileDialog fileDlg(
+		FALSE, NULL, FileName,
+		OFN_DONTADDTORECENT | OFN_EXPLORER |
+		OFN_EXTENSIONDIFFERENT | OFN_NONETWORKBUTTON |
+		OFN_OVERWRITEPROMPT
+	);
+	if (IDOK != fileDlg.DoModal()) { // 用户点击了取消
+		return;
+	}
+	CString CtrledDir; // 要下载的被控端的文件路径，发送给被控端
+	GetSelectedDir(CtrledDir);
+	CtrledDir += FileName;
+	CString dir = fileDlg.GetFolderPath();
+	dir.Format("%s\\%s", dir.GetString(), fileDlg.GetFileName().GetString());
+	HANDLE hFile = CreateFile(dir.GetString(), GENERIC_READ | GENERIC_WRITE, FILE_SHARE_DELETE, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+	if (hFile == INVALID_HANDLE_VALUE) {
+		CLTools::ErrorOut("文件创建失败！", __FILE__, __LINE__);
+		return;
+	}
+	CLRCCliControl* pControl = CLRCCliControl::getInstance();
+	pControl->SetPackage(COM_FILEDOWNLOAD, CtrledDir);
+	INT ret = pControl->Send();
+	if (ret < 0) {
+		CLTools::ErrorOut("数据包发送失败！", __FILE__, __LINE__);
+	}
+
+	INT index = pControl->Recv(FALSE, 0);
+	char* endPtr = NULL;
+	long long FileSize = strtoul(pControl->GetPackage().GetData(), &endPtr, 10);
+	DWORD len = 0;
+	do {
+		index = pControl->Recv(FALSE, index);
+		if (index < 0)
+			break;
+		CLPackage& pack = pControl->GetPackage();
+		if (pack.GetCmd() == COM_FILEDOWNLOAD) {
+			len = 0;
+			if (FALSE == WriteFile(hFile, pack.GetData(), (DWORD)pack.GetDataSize(), &len, NULL)) {
+				CLTools::ErrorOut("文件写入失败！", __FILE__, __LINE__);
+				break;
+			}
+			FileSize -= len;
+		}
+	} while (FileSize > 0 && index >= 0);
+	CloseHandle(hFile);
+	pControl->Close();
+	if (FileSize <= 0)
+		MessageBox("文件下载完成！", "成功", MB_OK | MB_USERICON);
+	else
+		MessageBox("文件下载失败！", "错误", MB_OK | MB_ICONERROR);
+}
+
+void CRemoteCtrlClientDlg::OnDeletefile()
+{
+	// TODO: 在此添加命令处理程序代码
+	CString FileName;
+	GetSelectedDir(FileName);
+	FileName += m_FileList.GetItemText(m_FileList.GetSelectionMark(), 0); // 获取右键选定的项文本及路径
+	TRACE("%s\r\n", FileName);
+	CLRCCliControl* pControl = CLRCCliControl::getInstance();
+	pControl->SetPackage(COM_FILEDELETE, FileName);
+	INT ret = pControl->Send();
+	if (ret < 0) {
+		CLTools::ErrorOut("数据包发送失败！", __FILE__, __LINE__);
+	}
+	ret = pControl->Recv();
+	if (ret < 0) {
+		CLTools::ErrorOut("数据包接收失败！", __FILE__, __LINE__);
+	}
+	FileName.Format("%s", pControl->GetPackage().GetData());
+	if (FileName == "OK") {
+		m_FileList.DeleteItem(m_FileList.GetSelectionMark());
+		MessageBox("文件删除成功！", "成功", MB_OK | MB_USERICON);
+	}
+	else
+		MessageBox("文件删除失败！", "错误", MB_OK | MB_ICONERROR);
+}
+
+void CRemoteCtrlClientDlg::OnUploadfile()
+{
+	// TODO: 在此添加命令处理程序代码
+	CString Dir;
+	HTREEITEM hTree = GetSelectedDir(Dir);
+	if (hTree == NULL) {
+		MessageBox("请选择目录后，再点击！", "错误", MB_OK | MB_ICONERROR);
+		return;
+	}
+	TRACE("%s\r\n", Dir);
+	CFileDialog fileDlg(TRUE);
+	if (IDOK != fileDlg.DoModal()) { // 用户点击了取消
+		return;
+	}
 }

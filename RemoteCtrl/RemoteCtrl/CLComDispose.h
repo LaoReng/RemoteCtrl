@@ -31,6 +31,8 @@ public:
 	void getFile(bool isOnlyGetFile = false);
 	// 文件下载响应函数
 	void fileDownload();
+	// 文件删除响应函数
+	void fileDelete();
 	// 文件上传响应函数
 	void fileUpload();
 	// 远程桌面响应函数
