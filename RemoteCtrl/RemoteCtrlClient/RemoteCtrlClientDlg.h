@@ -4,6 +4,7 @@
 
 #pragma once
 #include "CLSockInfoDlg.h"
+#include "CLRemoteDesktopDlg.h"
 
 // CRemoteCtrlClientDlg 对话框
 class CRemoteCtrlClientDlg : public CDialogEx
@@ -22,13 +23,16 @@ public:
 
 
 private:
-	CLSockInfoDlg m_SockInfo; // 网络套接字信息
+	// 网络套接字信息Dlg
+	CLSockInfoDlg m_SockInfo; 
 	// 目录显示控件
 	CTreeCtrl m_TreeDrive;
 	// 文件列表控件
 	CListCtrl m_FileList;
 	// 文件列表菜单控件
 	CMenu m_menu;
+	// 远程桌面Dlg
+	CLRemoteDesktopDlg m_RemDesktop;
 // 实现
 protected:
 	HICON m_hIcon;
@@ -67,4 +71,6 @@ public:
 	afx_msg void OnDeletefile();
 	// 点击文件菜单的文件上传选项，响应函数
 	afx_msg void OnUploadfile();
+	// 点击远程桌面按钮，响应函数
+	afx_msg void OnBnClickedButRemdesktop();
 };

@@ -187,6 +187,7 @@
     <ClInclude Include="CLPackage.h" />
     <ClInclude Include="CLRCCliControl.h" />
     <ClInclude Include="CLRCCliModel.h" />
+    <ClInclude Include="CLRemoteDesktopDlg.h" />
     <ClInclude Include="CLSockInfoDlg.h" />
     <ClInclude Include="CLTools.h" />
     <ClInclude Include="framework.h" />
@@ -201,6 +202,7 @@
     <ClCompile Include="CLPackage.cpp" />
     <ClCompile Include="CLRCCliControl.cpp" />
     <ClCompile Include="CLRCCliModel.cpp" />
+    <ClCompile Include="CLRemoteDesktopDlg.cpp" />
     <ClCompile Include="CLSockInfoDlg.cpp" />
     <ClCompile Include="CLTools.cpp" />
     <ClCompile Include="pch.cpp">

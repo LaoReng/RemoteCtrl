@@ -54,6 +54,7 @@ END_MESSAGE_MAP()
 CRemoteCtrlClientDlg::CRemoteCtrlClientDlg(CWnd* pParent /*=nullptr*/)
 	: CDialogEx(IDD_REMOTECTRLCLIENT_DIALOG, pParent)
 	, m_SockInfo(this)
+	, m_RemDesktop(this)
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 	m_menu.LoadMenuA(IDR_MENU_FILEDIS);
@@ -80,6 +81,7 @@ BEGIN_MESSAGE_MAP(CRemoteCtrlClientDlg, CDialogEx)
 	ON_COMMAND(ID_DOWNLOADFILE, &CRemoteCtrlClientDlg::OnDownloadfile)
 	ON_COMMAND(ID_DELETEFILE, &CRemoteCtrlClientDlg::OnDeletefile)
 	ON_COMMAND(ID_UPLOADFILE, &CRemoteCtrlClientDlg::OnUploadfile)
+	ON_BN_CLICKED(IDC_BUT_REMDESKTOP, &CRemoteCtrlClientDlg::OnBnClickedButRemdesktop)
 END_MESSAGE_MAP()
 
 
@@ -493,4 +495,10 @@ void CRemoteCtrlClientDlg::OnUploadfile()
 	if (IDOK != fileDlg.DoModal()) { // 用户点击了取消
 		return;
 	}
+}
+
+void CRemoteCtrlClientDlg::OnBnClickedButRemdesktop()
+{
+	// TODO: 在此添加控件通知处理程序代码
+	m_RemDesktop.DoModal();
 }
