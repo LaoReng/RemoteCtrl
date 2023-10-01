@@ -92,7 +92,7 @@ int CTCP::Send(const PBYTE& buffer, size_t BufSize)
 			CString str;
 			str.Format("Êý¾Ý·¢ËÍÊ§°Ü! lasterror:%d", WSAGetLastError());
 			CLTools::ErrorOut(str, __FILE__, __LINE__);
-			index *= -1;
+			index = ret;
 			break;
 		}
 		index += ret;

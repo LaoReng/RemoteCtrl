@@ -426,7 +426,10 @@ void CRemoteCtrlClientDlg::OnDownloadfile()
 	pControl->SetPackage(COM_FILEDOWNLOAD, CtrledDir);
 	INT ret = pControl->Send();
 	if (ret < 0) {
+		CloseHandle(hFile);
+		MessageBox("请检查网络是否连接！", "错误", MB_OK | MB_ICONERROR);
 		CLTools::ErrorOut("数据包发送失败！", __FILE__, __LINE__);
+		return;
 	}
 
 	INT index = pControl->Recv(FALSE, 0);
