@@ -11,6 +11,8 @@ CLRCCliControl::CLRCCliControl()
 	, m_pack()
 {
 	m_sock.Init();
+	m_SerIp.Format("%s", "127.0.0.1");
+	m_SerPort = 7968;
 	m_buffer = std::make_shared<char*>(new char[BUFSIZE] {});
 }
 
@@ -54,6 +56,32 @@ void CLRCCliControl::SetPackage(unsigned short cmd, const char* data)
 		m_pack.SetData(data);
 }
 
+void CLRCCliControl::SetSerIp(const char* ip)
+{
+	if (ip == NULL)return;
+	if (m_SerIp != ip) {
+		m_SerIp.Format("%s", ip);
+	}
+}
+
+void CLRCCliControl::SetSerPort(const short port)
+{
+	if (port < 0)return;
+	if (m_SerPort != port) {
+		m_SerPort = port;
+	}
+}
+
+const char* CLRCCliControl::GetSerIp()
+{
+	return m_SerIp.GetString();
+}
+
+short CLRCCliControl::GetSerPort()
+{
+	return m_SerPort;
+}
+
 void CLRCCliControl::Close()
 {
 	m_sock.CloseJointSock();
@@ -61,7 +89,7 @@ void CLRCCliControl::Close()
 
 int CLRCCliControl::Send()
 {
-	m_sock.Joint(7968, "127.0.0.1");
+	m_sock.Joint(m_SerPort, m_SerIp);
 	return m_sock.Send((PBYTE)m_pack.MemStream(), m_pack.GetSize());
 }
 

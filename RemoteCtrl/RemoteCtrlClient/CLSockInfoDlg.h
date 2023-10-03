@@ -10,6 +10,8 @@ class CLSockInfoDlg : public CDialogEx
 public:
 	CLSockInfoDlg(CWnd* pParent = nullptr);   // 标准构造函数
 	virtual ~CLSockInfoDlg();
+	static CString GetSockIp();
+	static short GetSockPort();
 
 // 对话框数据
 #ifdef AFX_DESIGN_TIME
@@ -26,4 +28,9 @@ private:
 	CIPAddressCtrl m_SockIp;
 	// 服务器端口
 	CEdit m_SockPort;
+	static CString m_ip;
+	static BYTE nIpld0, nIpld1, nIpld2, nIpld3;
+	static CString m_port;
+public:
+	afx_msg void OnBnClickedOk();
 };

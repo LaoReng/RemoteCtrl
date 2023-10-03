@@ -61,14 +61,41 @@ END_MESSAGE_MAP()
 
 void CLRemoteDesktopDlg::OnBnClickedButLock()
 {
-	// TODO: 在此添加控件通知处理程序代码
 	CString str;
 	m_LockBut.GetWindowTextA(str);
 	if (str == "锁定") {
 		str = "解锁";
+		m_pControl->SetPackage(COM_SYSTEMLOCK);
+		if (m_pControl->Send() < 0) {
+			MessageBox("请检查网络是否连接！", "错误", MB_OK | MB_ICONERROR);
+			CLTools::ErrorOut("数据包发送失败！", __FILE__, __LINE__);
+			return;
+		}
+		m_pControl->Recv();
+		if (m_pControl->GetPackage().GetCmd() == COM_SYSTEMLOCK) {
+			if (strcmp(m_pControl->GetPackage().GetData(), "ok") != 0) {
+				MessageBox("系统锁定失败！", "错误", MB_OK | MB_ICONERROR);
+				CLTools::ErrorOut("系统锁定失败！", __FILE__, __LINE__);
+				return;
+			}
+		}
 	}
 	else {
 		str = "锁定";
+		m_pControl->SetPackage(COM_SYSTEMUNLOCK);
+		if (m_pControl->Send() < 0) {
+			MessageBox("请检查网络是否连接！", "错误", MB_OK | MB_ICONERROR);
+			CLTools::ErrorOut("数据包发送失败！", __FILE__, __LINE__);
+			return;
+		}
+		m_pControl->Recv();
+		if (m_pControl->GetPackage().GetCmd() == COM_SYSTEMUNLOCK) {
+			if (strcmp(m_pControl->GetPackage().GetData(), "ok") != 0) {
+				MessageBox("系统解锁失败！", "错误", MB_OK | MB_ICONERROR);
+				CLTools::ErrorOut("系统锁定失败！", __FILE__, __LINE__);
+				return;
+			}
+		}
 	}
 	m_LockBut.SetWindowText(str);
 }

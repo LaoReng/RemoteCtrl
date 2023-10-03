@@ -390,13 +390,18 @@ void CRemoteCtrlClientDlg::OnNMClickListFileinfo(NMHDR* pNMHDR, LRESULT* pResult
 
 void CRemoteCtrlClientDlg::OnSetnetwork()
 {
-	// TODO: 在此添加命令处理程序代码
-	TRACE("点击了设置网络\r\n");
-
-	/*//非模态对话框
+	/*
+	//非模态对话框
 	m_SockInfo.CenterWindow();
 	m_SockInfo.ShowWindow(SW_SHOW);*/
-	m_SockInfo.DoModal();
+	INT_PTR ret = m_SockInfo.DoModal();
+	if (ret == IDOK) {
+		CLRCCliControl* pControl = CLRCCliControl::getInstance();
+		TRACE("ip: %s,port: %d\r\n", pControl->GetSerIp(), pControl->GetSerPort());
+		pControl->SetSerIp(m_SockInfo.GetSockIp());
+		pControl->SetSerPort(m_SockInfo.GetSockPort());
+		TRACE("ip: %s,port: %d\r\n", pControl->GetSerIp(), pControl->GetSerPort());
+	}
 }
 
 void CRemoteCtrlClientDlg::OnDownloadfile()

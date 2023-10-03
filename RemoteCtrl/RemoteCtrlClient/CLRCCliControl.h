@@ -19,6 +19,14 @@ public:
 	// 设置数据包中命令和数据
 	// cmd：设置数据包命令 data：设置数据包数据，默认为NULL
 	void SetPackage(unsigned short cmd, const char* data = NULL);
+	// 设置服务器的IP地址
+	void SetSerIp(const char* ip);
+	// 设置服务器的端口
+	void SetSerPort(const short port);
+	// 获取服务器的IP地址
+	const char* GetSerIp();
+	// 获取服务器的端口
+	short GetSerPort();
 	// 关闭客户端套接字
 	void Close();
 private:
@@ -30,6 +38,8 @@ private:
 	static void releaseInstance();
 private:
 	CLNetworkSocket<CTCP> m_sock;
+	CString m_SerIp;
+	short m_SerPort;
 	CLPackage m_pack;
 	std::shared_ptr<char*> m_buffer;
 	class Helper {

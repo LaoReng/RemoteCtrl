@@ -375,7 +375,7 @@ void CLComDispose::remoteDesktop()
 void CLComDispose::systemLock()
 {
 	m_hLockThread = (HANDLE)_beginthreadex(NULL, 0, sysLockThread, this, 0, &m_lockThreadID);
-	m_pack = CLPackage(COM_SYSTEMLOCK, "ok");
+	m_pack = CLPackage(COM_SYSTEMLOCK, "ok", sizeof("ok"));
 	if (Send() < 0) {
 		CLTools::ErrorOut("systemLock send error!", __FILE__, __LINE__);
 	}
@@ -383,8 +383,8 @@ void CLComDispose::systemLock()
 
 void CLComDispose::systemUnlock()
 {
-	PostThreadMessage(m_lockThreadID, WM_KEYDOWN, 0x4C, 0);
-	m_pack = CLPackage(COM_SYSTEMUNLOCK, "ok");
+	PostThreadMessage(m_lockThreadID, WM_KEYDOWN, 0x4C, 0); // 向系统锁线程发送按键消息（L键）
+	m_pack = CLPackage(COM_SYSTEMUNLOCK, "ok", sizeof("ok"));
 	if (Send() < 0) {
 		CLTools::ErrorOut("systemUnlock send error!", __FILE__, __LINE__);
 	}
@@ -432,7 +432,7 @@ void CLComDispose::sysLockThreadMain()
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
 		if (msg.message == WM_KEYDOWN) {
-			if (msg.wParam == 0x4C) {
+			if (msg.wParam == 0x4C) { // L键按下解锁
 				break;
 			}
 		}

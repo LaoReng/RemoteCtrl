@@ -33,34 +33,6 @@ void CLSysLockDialog::DoDataExchange(CDataExchange* pDX)
 
 
 BEGIN_MESSAGE_MAP(CLSysLockDialog, CDialogEx)
-	ON_WM_CHAR()
-	ON_WM_KEYDOWN()
-	ON_WM_LBUTTONDOWN()
 END_MESSAGE_MAP()
 
 
-// CLSysLockDialog 消息处理程序
-
-
-void CLSysLockDialog::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags)
-{
-	// TODO: 在此添加消息处理程序代码和/或调用默认值
-	MessageBox("按下了键盘");
-	CDialogEx::OnChar(nChar, nRepCnt, nFlags);
-}
-
-
-void CLSysLockDialog::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
-{
-	// TODO: 在此添加消息处理程序代码和/或调用默认值
-	MessageBox("按下了键盘");
-	CDialogEx::OnKeyDown(nChar, nRepCnt, nFlags);
-}
-
-
-void CLSysLockDialog::OnLButtonDown(UINT nFlags, CPoint point)
-{
-	// TODO: 在此添加消息处理程序代码和/或调用默认值
-	MessageBox("按下了键盘");
-	CDialogEx::OnLButtonDown(nFlags, point);
-}
