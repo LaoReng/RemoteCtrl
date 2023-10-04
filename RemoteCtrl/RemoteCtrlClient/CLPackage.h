@@ -4,6 +4,7 @@
 
 enum {
 	COM_NULL,          // 没有命令，嗅探包
+	COM_INVALID,       // 无效的包命令
 	COM_TESTCONNECT,   // 测试连接
 	COM_USERLOGIN,     // 用户登录
 	COM_GETDRIVE,      // 获取卷
@@ -83,6 +84,8 @@ public:
 	const char* MemStream();
 	// 获取包的大小
 	size_t GetSize() const;
+	// 清除数据包中的数据
+	void DataClear();
 private:
 	// 设置数据包长度，内部使用
 	void SetPLen();
@@ -97,7 +100,7 @@ private:
 protected:
 	unsigned short         m_PHead;        // 数据包头，固定0xFEFF
 	unsigned short         m_PCmd;         // 数据包命令
-	unsigned short         m_PLength;      // 数据包长度，从数据校验和到数据包尾部
+	unsigned short         m_PLength;      // 数据包长度，从数据校验和到数据包尾部 
 	unsigned int           m_PAdd;         // 数据校验和，就是数组部分的和，默认是0如果没有数组就不需要计算
 	std::shared_ptr<char*> m_PData;        // 数据
 private:

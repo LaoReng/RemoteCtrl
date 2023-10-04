@@ -39,10 +39,10 @@
     <ClInclude Include="CLNetworkSocket.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="CLPackage.h">
+    <ClInclude Include="CLTools.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="CLTools.h">
+    <ClInclude Include="CLPackage.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

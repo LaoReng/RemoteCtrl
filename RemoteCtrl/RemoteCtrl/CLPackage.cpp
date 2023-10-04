@@ -23,7 +23,7 @@ CLPackage::CLPackage(unsigned short cmd, const char* data, size_t dataSize)
 	, m_PackIsChange(TRUE)
 {
 	if (data) {
- 		if (!dataSize)
+		if (!dataSize)
 			MessageBox(NULL, "数据长度不应为0！", "错误", MB_OK | MB_ICONERROR);
 		m_PDataSize = dataSize;
 		m_PData = std::make_shared<char*>(new char[BUFSIZE] { 0 });
@@ -153,7 +153,6 @@ void CLPackage::SetData(const char* data)
 {
 	if (data) {
 		if (!m_PData) {
-
 			m_PData = std::make_shared<char*>(new char[m_PDataSize + 1]{ 0 });
 		}
 		else {
@@ -192,7 +191,7 @@ const char* CLPackage::MemStream()
 	if (m_PackIsChange) {
 		memset(m_strPackage, 0, sizeof(m_strPackage));
 		size_t index = 0;
-		size_t bitAllSize = BITSIZE(m_PHead) + BITSIZE(m_PCmd) + BITSIZE(m_PLength) + BITSIZE(m_PAdd);
+		m_PLength = (unsigned short)(sizeof(m_PAdd) + m_PDataSize);
 		char* strPtr = (char*)m_strPackage;
 		Value2MemValue((PBYTE)(strPtr + index), m_PHead, sizeof(m_PHead)); index += sizeof(m_PHead);
 		Value2MemValue((PBYTE)(strPtr + index), m_PCmd, sizeof(m_PCmd)); index += sizeof(m_PCmd);
@@ -215,6 +214,19 @@ size_t CLPackage::GetSize() const
 void CLPackage::SetPLen()
 {
 	m_PLength = 4 + (unsigned short)m_PDataSize;
+	m_PackIsChange = TRUE;
+}
+
+void CLPackage::DataClear()
+{
+	m_PCmd = COM_INVALID;
+	m_PLength = 0;
+	m_PAdd = 0;
+	if (m_PData && *m_PData)
+		memset(*m_PData, 0, BUFSIZE);
+	m_PDataSize = 0;
+	if (m_strPackage)
+		memset(m_strPackage, 0, BUFSIZE);
 	m_PackIsChange = TRUE;
 }
 
@@ -274,15 +286,6 @@ void fileInfo::setAll(const char* filename, BOOL isdir, BOOL ishidden, BOOL isla
 	m_isHidden = ishidden;
 	m_isLast = islast;
 }
-
-/*const char* fileInfo::operator&()
-{
-	m_strFileInfo += m_fileName;
-	m_strFileInfo += m_isDir;
-	m_strFileInfo += m_isHidden;
-	m_strFileInfo += m_isLast;
-	return m_strFileInfo.c_str();
-}*/
 
 void fileInfo::MemStream(PBYTE mem)
 {

@@ -52,7 +52,7 @@ SOCKET CTCP::Joint(int port, const char* ip)
 		m_jointSock = accept(m_sock, (sockaddr*)&m_cliAddr, &len);
 		if (m_jointSock == INVALID_SOCKET) {
 			CLTools::ErrorOut("服务端等待连接错误！", __FILE__, __LINE__);
-			return -3;
+			return INVALID_SOCKET;
 		}
 	}
 	else {
@@ -61,7 +61,7 @@ SOCKET CTCP::Joint(int port, const char* ip)
 		m_serAddr = CSockAddr(ip, port);
 		if (connect(m_sock, (sockaddr*)&m_serAddr, (int)m_serAddr.Size())) {
 			CLTools::ErrorOut("客户端连接服务器失败！", __FILE__, __LINE__);
-			return -4;
+			return INVALID_SOCKET;
 		}
 		m_jointSock = m_sock;
 	}
@@ -89,8 +89,10 @@ int CTCP::Send(const PBYTE& buffer, size_t BufSize)
 	while (buflen > 0) {
 		ret = send(m_jointSock, (char*)(buffer + index), buflen, 0);
 		if (ret < 0) {
-			CLTools::ErrorOut("数据发送失败！", __FILE__, __LINE__);
-			index *= -1;
+			CString str;
+			str.Format("数据发送失败! lasterror:%d", WSAGetLastError());
+			CLTools::ErrorOut(str, __FILE__, __LINE__);
+			index = ret;
 			break;
 		}
 		index += ret;

@@ -153,7 +153,6 @@ void CLPackage::SetData(const char* data)
 {
 	if (data) {
 		if (!m_PData) {
-
 			m_PData = std::make_shared<char*>(new char[m_PDataSize + 1]{ 0 });
 		}
 		else {
@@ -192,7 +191,7 @@ const char* CLPackage::MemStream()
 	if (m_PackIsChange) {
 		memset(m_strPackage, 0, sizeof(m_strPackage));
 		size_t index = 0;
-		size_t bitAllSize = BITSIZE(m_PHead) + BITSIZE(m_PCmd) + BITSIZE(m_PLength) + BITSIZE(m_PAdd);
+		m_PLength = (unsigned short)(sizeof(m_PAdd) + m_PDataSize);
 		char* strPtr = (char*)m_strPackage;
 		Value2MemValue((PBYTE)(strPtr + index), m_PHead, sizeof(m_PHead)); index += sizeof(m_PHead);
 		Value2MemValue((PBYTE)(strPtr + index), m_PCmd, sizeof(m_PCmd)); index += sizeof(m_PCmd);
@@ -215,6 +214,19 @@ size_t CLPackage::GetSize() const
 void CLPackage::SetPLen()
 {
 	m_PLength = 4 + (unsigned short)m_PDataSize;
+	m_PackIsChange = TRUE;
+}
+
+void CLPackage::DataClear()
+{
+	m_PCmd = COM_INVALID;
+	m_PLength = 0;
+	m_PAdd = 0;
+	if (m_PData && *m_PData)
+		memset(*m_PData, 0, BUFSIZE);
+	m_PDataSize = 0;
+	if (m_strPackage)
+		memset(m_strPackage, 0, BUFSIZE);
 	m_PackIsChange = TRUE;
 }
 

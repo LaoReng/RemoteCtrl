@@ -397,10 +397,8 @@ void CRemoteCtrlClientDlg::OnSetnetwork()
 	INT_PTR ret = m_SockInfo.DoModal();
 	if (ret == IDOK) {
 		CLRCCliControl* pControl = CLRCCliControl::getInstance();
-		TRACE("ip: %s,port: %d\r\n", pControl->GetSerIp(), pControl->GetSerPort());
 		pControl->SetSerIp(m_SockInfo.GetSockIp());
 		pControl->SetSerPort(m_SockInfo.GetSockPort());
-		TRACE("ip: %s,port: %d\r\n", pControl->GetSerIp(), pControl->GetSerPort());
 	}
 }
 

@@ -4,6 +4,7 @@
 
 enum {
 	COM_NULL,          // 没有命令，嗅探包
+	COM_INVALID,       // 无效的包命令
 	COM_TESTCONNECT,   // 测试连接
 	COM_USERLOGIN,     // 用户登录
 	COM_GETDRIVE,      // 获取卷
@@ -33,6 +34,14 @@ typedef struct fileInfo
 		m_fileName = new char[FILESIZE] {};
 	}
 	fileInfo(const char* filename, BOOL isdir, BOOL ishidden, BOOL islast);
+	void operator=(const char* str) {
+		if (str == NULL)return;
+		memcpy(m_fileName, str, FILESIZE);
+		int index = FILESIZE;
+		m_isDir = *(BOOL*)(str + index); index += sizeof(BOOL);
+		m_isHidden = *(BOOL*)(str + index); index += sizeof(BOOL);
+		m_isLast = *(BOOL*)(str + index); index += sizeof(BOOL);
+	}
 	~fileInfo() {
 		if (m_fileName) {
 			char* temp = m_fileName;
@@ -45,7 +54,6 @@ typedef struct fileInfo
 	static constexpr size_t getSize() {
 		return FILESIZE + sizeof(BOOL) * 3;
 	}
-	//const char* operator&();
 }FILEINFO, * PFILEINFO;
 
 
@@ -76,6 +84,8 @@ public:
 	const char* MemStream();
 	// 获取包的大小
 	size_t GetSize() const;
+	// 清除数据包中的数据
+	void DataClear();
 private:
 	// 设置数据包长度，内部使用
 	void SetPLen();

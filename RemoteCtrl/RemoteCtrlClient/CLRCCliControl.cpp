@@ -51,6 +51,7 @@ void CLRCCliControl::releaseInstance()
 void CLRCCliControl::SetPackage(unsigned short cmd, const char* data)
 {
 	//m_pack = CLPackage(cmd, data);
+	m_pack.DataClear();
 	m_pack.SetCmd(cmd);
 	if (data)
 		m_pack.SetData(data);
@@ -89,7 +90,8 @@ void CLRCCliControl::Close()
 
 int CLRCCliControl::Send()
 {
-	m_sock.Joint(m_SerPort, m_SerIp);
+	if (INVALID_SOCKET == m_sock.Joint(m_SerPort, m_SerIp))
+		return -1;
 	return m_sock.Send((PBYTE)m_pack.MemStream(), m_pack.GetSize());
 }
 

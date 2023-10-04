@@ -15,9 +15,9 @@
 
 在GitHub上点击New，进行仓库创建
 
- <img src="C:\Users\lwd15\AppData\Roaming\Typora\typora-user-images\image-20230826205138992.png" alt="image-20230826205138992" style="zoom:80%;" />
+ <img src="README.assets/image-20230826205138992.png" alt="image-20230826205138992" style="zoom:80%;" />
 
- <img src="C:\Users\lwd15\AppData\Roaming\Typora\typora-user-images\image-20230826205741118.png" alt="image-20230826205741118" style="zoom:80%;" />
+ <img src="README.assets\image-20230826205741118.png" alt="image-20230826205741118" style="zoom:80%;" />
 
 Repository name：输入你的仓库名
 
@@ -59,17 +59,17 @@ git config --global https.proxy 127.0.0.1:7890
 
 在GitHub上选择你新建的仓库，点击Code把https对应的地址复制一下
 
- <img src="C:\Users\lwd15\AppData\Roaming\Typora\typora-user-images\image-20230826210820303.png" alt="image-20230826210820303" style="zoom:80%;" />
+ <img src="README.assets\image-20230826210820303.png" alt="image-20230826210820303" style="zoom:80%;" />
 
 #### 本地克隆仓库
 
 选择一个目录，鼠标右键点击"Git 克隆"
 
- <img src="C:\Users\lwd15\AppData\Roaming\Typora\typora-user-images\image-20230826211059694.png" alt="image-20230826211059694" style="zoom:80%;" />
+ <img src="README.assets\image-20230826211059694.png" alt="image-20230826211059694" style="zoom:80%;" />
 
 如果你正确复制了仓库的地址，则会自动帮你填充，点击确定即可
 
- <img src="C:\Users\lwd15\AppData\Roaming\Typora\typora-user-images\image-20230826211140978.png" alt="image-20230826211140978" style="zoom:80%;" />
+ <img src="README.assets\image-20230826211140978.png" alt="image-20230826211140978" style="zoom:80%;" />
 
 稍等片刻，便会创建好克隆的仓库文件夹，文件夹里面也会有GitHub仓库上的文件
 
@@ -81,11 +81,11 @@ git config --global https.proxy 127.0.0.1:7890
 
 进入克隆的文件夹下，鼠标右键点击“Git 提交”
 
- <img src="C:\Users\lwd15\AppData\Roaming\Typora\typora-user-images\image-20230826211633387.png" alt="image-20230826211633387" style="zoom:80%;" />
+ <img src="README.assets\image-20230826211633387.png" alt="image-20230826211633387" style="zoom:80%;" />
 
 在提交的时候，需要写日志不写没有办法提交，写完后点击提交并推送就可以了
 
-<img src="C:\Users\lwd15\AppData\Roaming\Typora\typora-user-images\image-20230826211751723.png" alt="image-20230826211751723" style="zoom:80%;" />
+<img src="README.assets\image-20230826211751723.png" alt="image-20230826211751723" style="zoom:80%;" />
 
 刷新一下GitHub就可以看到你提交的内容
 
@@ -133,11 +133,11 @@ git config --global https.proxy 127.0.0.1:7890
 
 TCP客户端/服务器网络编程：
 
- <img src="C:\Users\lwd15\AppData\Roaming\Typora\typora-user-images\image-20230827175923218.png" alt="image-20230827175923218" style="zoom:80%;" />
+ <img src="README.assets\image-20230827175923218.png" alt="image-20230827175923218" style="zoom:80%;" />
 
 UDP客户端/服务器网络编程：
 
- <img src="C:\Users\lwd15\AppData\Roaming\Typora\typora-user-images\image-20230827180012485.png" alt="image-20230827180012485" style="zoom:80%;" />
+ <img src="README.assets\image-20230827180012485.png" alt="image-20230827180012485" style="zoom:80%;" />
 
 规范后流程：
 
@@ -167,6 +167,25 @@ graph TD;
 	D --> E["关闭客户端套接字"]
 	E --> B
 	E --> F["关闭服务器套接字"]
+```
+
+### 无窗口服务器实现
+
+右键项目点击属性→点击链接器→选择所有选项→入口点设置为mainCRTStartup→子系统设置为窗口
+
+<img src="README.assets/image-20231004104208832.png" alt="image-20231004104208832" style="zoom:80%;" />
+
+<img src="README.assets/image-20231004104256631.png" alt="image-20231004104256631" style="zoom:80%;" />
+
+<img src="README.assets/image-20231004104427911.png" alt="image-20231004104427911" style="zoom:80%;" />
+
+用代码实现：
+
+```c++
+#pragma comment(linker,"/subsystem:windows /entry:WinMainCRTStartup") //子系统:窗口 入口点:WinMainCRTStartup
+#pragma comment(linker,"/subsystem:windows /entry:mainCRTStartup")    //子系统:窗口 入口点:mainCRTStartup
+#pragma comment(linker,"/subsystem:console /entry:mainCRTStartup")    //子系统:控制台 入口点:mainCRTStartup
+#pragma comment(linker,"/subsystem:console /entry:WinMainCRTStartup") //子系统:控制台 入口点:WinMainCRTStartup
 ```
 
 ### 文件查看功能
@@ -285,7 +304,7 @@ buffer[5] = ((BYTE*)&SValue)[0];
 delete[] buffer;
 ```
 
- <img src="C:\Users\lwd15\AppData\Roaming\Typora\typora-user-images\image-20230908161850796.png" alt="image-20230908161850796" style="zoom:80%;" />
+ <img src="README.assets\image-20230908161850796.png" alt="image-20230908161850796" style="zoom:80%;" />
 
 可以看到，我们已经将数值按字节插入到指定内存流中
 
@@ -296,7 +315,7 @@ int sVal = *(short*)(buffer + 4); // 前面的4字节已经读取完
 std::cout << hex << "0x" << iVal << " 0x" << sVal << std::endl;
 ```
 
- <img src="C:\Users\lwd15\AppData\Roaming\Typora\typora-user-images\image-20230908162129700.png" alt="image-20230908162129700" style="zoom:80%;" />
+ <img src="README.assets\image-20230908162129700.png" alt="image-20230908162129700" style="zoom:80%;" />
 
 可以看到，也是有正确的数据读取出来的，只是在我的电脑上是低字节放在高位的(专业术语：大顶端)，所以造成了数据反了的现象，下面的代码则是大顶端将数据插入内存的示例代码
 
@@ -314,7 +333,7 @@ buffer[5] = ((BYTE*)&SValue)[1];
 delete[] buffer;
 ```
 
- <img src="C:\Users\lwd15\AppData\Roaming\Typora\typora-user-images\image-20230908162546846.png" alt="image-20230908162546846" style="zoom:80%;" />
+ <img src="README.assets\image-20230908162546846.png" alt="image-20230908162546846" style="zoom:80%;" />
 
 可以看到，这回输出的数据就正确了
 
@@ -324,7 +343,7 @@ delete[] buffer;
 
 问题描述：在资源添加完成以后，编译的时候报错：error C2504: “CDialogEx”: 未定义基类
 
- <img src="C:\Users\lwd15\AppData\Roaming\Typora\typora-user-images\image-20230902182625598.png" alt="image-20230902182625598" style="zoom:80%;" />
+ <img src="README.assets\image-20230902182625598.png" alt="image-20230902182625598" style="zoom:80%;" />
 
 问题分析：不是咱们创建的类，出现这种错误，大概的原因就是由于缺少头文件导致的
 
@@ -340,7 +359,7 @@ delete[] buffer;
 
 问题描述：在调用DoModal()创建模态对话框时出现错误
 
- <img src="C:\Users\lwd15\AppData\Roaming\Typora\typora-user-images\image-20230905164116767.png" alt="image-20230905164116767" style="zoom:80%;" />
+ <img src="README.assets\image-20230905164116767.png" alt="image-20230905164116767" style="zoom:80%;" />
 
 问题分析：在调用DoModal之前，该项目调用了该对象的Create()或ShowWindow()，导致的这种错误
 
