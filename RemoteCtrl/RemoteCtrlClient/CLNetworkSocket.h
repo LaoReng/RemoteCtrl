@@ -60,7 +60,7 @@ public:
 	// 等待连接/连接服务器
 	// port: 连接服务器的端口号(用于客户端)，ip: 连接服务器的地址(用于客户端) 
 	SOCKET Joint(int port = 0, const char* ip = NULL);
-	// 接收数据
+	// 接收数据，返回接收到的字节数
 	int Recv(PBYTE buffer, size_t BufSize, size_t index = 0);
 	// 发送数据
 	int Send(const PBYTE& buffer, size_t BufSize);

@@ -228,6 +228,51 @@ void CRemoteCtrlClientDlg::SetMenuState(BOOL IsForbidden)
 
 }
 
+void CRemoteCtrlClientDlg::UpdateFileList()
+{
+	CString str;
+	HTREEITEM hTree = GetSelectedDir(str);
+	if (hTree == NULL) {
+		return;
+	}
+	UINT state = m_TreeDrive.GetItemState(hTree, TVIS_EXPANDED) & TVIS_EXPANDED; // GetItemState方法：当前是展开在状态就返回TVIS_EXPANDED
+	if (state == TVIS_EXPANDED || !m_TreeDrive.ItemHasChildren(hTree)) { // 当前处于子项展开状态（处于展开就需要折叠）或者不存在子级，就不需要更新文件列表
+		m_FileList.DeleteAllItems();
+		return;
+	}
+	m_FileList.DeleteAllItems();
+	CLRCCliControl* pControl = CLRCCliControl::getInstance();
+	pControl->SetPackage(COM_GETFILES, str);
+	INT ret = pControl->Send();
+	if (ret < 0) {
+		CLTools::ErrorOut("数据包发送失败！", __FILE__, __LINE__);
+		return;
+	}
+	INT index = 0;
+	INT nCol = 0;
+	INT islast = 0;
+	FILEINFO finfo;
+	do {
+		index = pControl->Recv(FALSE, index);
+		if (index < 0)
+			break;
+		CLPackage& pack = pControl->GetPackage();
+		if (pack.GetCmd() == COM_GETFILES) {
+			char* finfos = (char*)pack.GetData();
+			size_t finfosSize = pack.GetDataSize();
+			for (int i = 0; i < finfosSize / FILEINFO::getSize(); i++) {
+				finfo = (finfos + FILEINFO::getSize() * i);
+				if (finfo.m_isLast) {
+					islast = 1;
+					break;
+				}
+				m_FileList.InsertItem(nCol++, finfo.m_fileName);
+			}
+		}
+	} while (!islast || index >= 0);
+	pControl->Close();
+}
+
 void CRemoteCtrlClientDlg::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags)
 {
 	// TODO: 在此添加消息处理程序代码和/或调用默认值
@@ -333,47 +378,7 @@ void CRemoteCtrlClientDlg::OnNMDblclkTreeDrive(NMHDR* pNMHDR, LRESULT* pResult)
 void CRemoteCtrlClientDlg::OnNMClickTreeDrive(NMHDR* pNMHDR, LRESULT* pResult)
 {
 	*pResult = 0;
-	CString str;
-	HTREEITEM hTree = GetSelectedDir(str);
-	if (hTree == NULL) {
-		return;
-	}
-	UINT state = m_TreeDrive.GetItemState(hTree, TVIS_EXPANDED) & TVIS_EXPANDED; // 当前是展开在状态就返回TVIS_EXPANDED
-	if (state == TVIS_EXPANDED || !m_TreeDrive.ItemHasChildren(hTree)) { // 当前处于子项展开状态（处于展开就需要折叠）或者不存在子级，就不需要更新文件列表
-		m_FileList.DeleteAllItems();
-		return;
-	}
-	m_FileList.DeleteAllItems();
-	CLRCCliControl* pControl = CLRCCliControl::getInstance();
-	pControl->SetPackage(COM_GETFILES, str);
-	INT ret = pControl->Send();
-	if (ret < 0) {
-		CLTools::ErrorOut("数据包发送失败！", __FILE__, __LINE__);
-		return;
-	}
-	INT index = 0;
-	INT nCol = 0;
-	INT islast = 0;
-	FILEINFO finfo;
-	do {
-		index = pControl->Recv(FALSE, index);
-		if (index < 0)
-			break;
-		CLPackage& pack = pControl->GetPackage();
-		if (pack.GetCmd() == COM_GETFILES) {
-			char* finfos = (char*)pack.GetData();
-			size_t finfosSize = pack.GetDataSize();
-			for (int i = 0; i < finfosSize / FILEINFO::getSize(); i++) {
-				finfo = (finfos + FILEINFO::getSize() * i);
-				if (finfo.m_isLast) {
-					islast = 1;
-					break;
-				}
-				m_FileList.InsertItem(nCol++, finfo.m_fileName);
-			}
-		}
-	} while (!islast || index >= 0);
-	pControl->Close();
+	UpdateFileList();
 }
 
 void CRemoteCtrlClientDlg::OnNMClickListFileinfo(NMHDR* pNMHDR, LRESULT* pResult)
@@ -477,6 +482,7 @@ void CRemoteCtrlClientDlg::OnDeletefile()
 	ret = pControl->Recv();
 	if (ret < 0) {
 		CLTools::ErrorOut("数据包接收失败！", __FILE__, __LINE__);
+		return;
 	}
 	FileName.Format("%s", pControl->GetPackage().GetData());
 	if (FileName == "OK") {
@@ -489,7 +495,6 @@ void CRemoteCtrlClientDlg::OnDeletefile()
 
 void CRemoteCtrlClientDlg::OnUploadfile()
 {
-	// TODO: 在此添加命令处理程序代码
 	CString Dir;
 	HTREEITEM hTree = GetSelectedDir(Dir);
 	if (hTree == NULL) {
@@ -501,6 +506,76 @@ void CRemoteCtrlClientDlg::OnUploadfile()
 	if (IDOK != fileDlg.DoModal()) { // 用户点击了取消
 		return;
 	}
+	// TODO: 文件上传功能存在BUG，待修复
+	// 思路：找到要上传文件的绝对路径，然后打开文件，发送给被控端，完成文件上传
+	CString FileName = fileDlg.GetFileName();
+	CString dir = fileDlg.GetFolderPath() + "\\" + FileName;
+	CString CtrledDir; // 要上传到被控端那个位置的路径及文件名，发送给被控端
+	GetSelectedDir(CtrledDir);
+	HANDLE hFile = CreateFile(dir.GetString(), GENERIC_READ, FILE_SHARE_DELETE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+	if (hFile == INVALID_HANDLE_VALUE) {
+		dir.Format("文件打开失败！ %s", dir.GetString());
+		CLTools::ErrorOut(dir, __FILE__, __LINE__);
+		return;
+	}
+	CLRCCliControl* pControl = CLRCCliControl::getInstance();
+	pControl->SetPackage(COM_FILEUPLOAD, CtrledDir + FileName);
+	INT ret = pControl->Send();
+	if (ret < 0) {
+		CloseHandle(hFile);
+		MessageBox("请检查网络是否连接！", "错误", MB_OK | MB_ICONERROR);
+		CLTools::ErrorOut("数据包发送失败！", __FILE__, __LINE__);
+		return;
+	}
+	DWORD FileSize = GetFileSize(hFile, NULL); // 获取文件的大小并发送给被控端
+	if (FileSize == INVALID_FILE_SIZE) {
+		CloseHandle(hFile);
+		CLTools::ErrorOut("文件大小获取失败！", __FILE__, __LINE__);
+		pControl->SetPackage(COM_FILEUPLOAD);
+		if (pControl->Send() < 0) {
+			MessageBox("请检查网络是否连接！", "错误", MB_OK | MB_ICONERROR);
+			CLTools::ErrorOut("数据包发送失败！", __FILE__, __LINE__);
+		}
+		return;
+	}
+	char buffer[1000] = ""; // 文件数据缓冲区
+	DWORD RLen = {};        // ReadFile() 读取到的数据大小
+	_ultoa(FileSize, buffer, 10);
+	// 发送文件的大小
+	pControl->SetPackage(COM_FILEUPLOAD, buffer);
+	if (pControl->Send() < 0) {
+		CloseHandle(hFile);
+		MessageBox("请检查网络是否连接！", "错误", MB_OK | MB_ICONERROR);
+		CLTools::ErrorOut("数据包发送失败！", __FILE__, __LINE__);
+		return;
+	}
+	do {
+		memset(buffer, 0, sizeof(buffer));
+		if (FALSE == ReadFile(hFile, buffer, sizeof(buffer), &RLen, NULL)) {
+			CLTools::ErrorOut("文件读取失败！", __FILE__, __LINE__);
+			break;
+		}
+		pControl->GetPackage() = CLPackage(COM_FILEUPLOAD, buffer, RLen);
+		if (pControl->Send() < 0) {
+			MessageBox("请检查网络是否连接！", "错误", MB_OK | MB_ICONERROR);
+			CLTools::ErrorOut("数据包发送失败！", __FILE__, __LINE__);
+			break;
+		}
+		FileSize -= RLen;
+	} while (FileSize > 0);
+	CloseHandle(hFile);
+	ret = pControl->Recv();
+	if (ret < 0) {
+		CLTools::ErrorOut("数据包接收失败！", __FILE__, __LINE__);
+		return;
+	}
+	FileName.Format("%s", pControl->GetPackage().GetData());
+	if (FileName == "ok") {
+		UpdateFileList();
+		MessageBox("文件上传成功！", "成功", MB_OK | MB_USERICON);
+	}
+	else
+		MessageBox("文件上传失败！", "错误", MB_OK | MB_ICONERROR);
 }
 
 void CRemoteCtrlClientDlg::OnBnClickedButRemdesktop()

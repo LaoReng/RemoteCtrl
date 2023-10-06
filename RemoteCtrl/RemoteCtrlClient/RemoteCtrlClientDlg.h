@@ -51,6 +51,8 @@ private:
 	// 设置菜单控件文件操作菜单栏的状态
 	// IsForbidden：是否禁用菜单，TRUE 禁用菜单 FALSE 启用菜单
 	void SetMenuState(BOOL IsForbidden = TRUE);
+	// 更新文件列表控件
+	void UpdateFileList();
 public:
 	afx_msg void OnChar(UINT nChar, UINT nRepCnt, UINT nFlags);
 	// 点击测试连接按钮，响应函数

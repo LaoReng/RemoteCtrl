@@ -98,6 +98,7 @@ void CLRemoteDesktopDlg::OnBnClickedButLock()
 void CLRemoteDesktopDlg::OnTimer(UINT_PTR nIDEvent)
 {
 	if (nIDEvent == TIMERID1) {
+		//Sleep(10);
 		m_pControl->SetPackage(COM_REMOTEDESKTOP);
 		INT ret = m_pControl->Send();
 		if (ret < 0) {
@@ -105,6 +106,7 @@ void CLRemoteDesktopDlg::OnTimer(UINT_PTR nIDEvent)
 			CLTools::ErrorOut("数据包发送失败！", __FILE__, __LINE__);
 			return;
 		}
+		m_index = 0;
 		HGDIOBJ memOb = GlobalAlloc(GMEM_MOVEABLE, 0);
 		if (!memOb)goto end;
 		IStream* pStream = NULL;
@@ -118,7 +120,7 @@ void CLRemoteDesktopDlg::OnTimer(UINT_PTR nIDEvent)
 			if (m_pControl->GetPackage().GetCmd() == COM_REMOTEDESKTOP) {
 				pStream->Write(m_pControl->GetPackage().GetData(), (ULONG)m_pControl->GetPackage().GetDataSize(), &len);
 			}
-		} while (m_index > 0 && len > 0);
+		} while (m_index >= 0 && len > 0);
 		CImage image;
 		if (image.Load(pStream) < 0) {
 			GlobalFree(memOb);
@@ -130,11 +132,11 @@ void CLRemoteDesktopDlg::OnTimer(UINT_PTR nIDEvent)
 			, 0, 0, image.GetWidth(), image.GetHeight()
 		);
 		m_image.ReleaseDC();
-		image.Save(".\\test.jpeg", Gdiplus::ImageFormatJPEG);
+		//image.Save(".\\test.jpeg", Gdiplus::ImageFormatJPEG);
 		m_DesktopControl.SetBitmap(HBITMAP(m_image));
 		GlobalFree(memOb);
 		m_pControl->Close();
-		Sleep(10);
+		
 	}
 end:
 	CDialogEx::OnTimer(nIDEvent);
@@ -152,6 +154,6 @@ void CLRemoteDesktopDlg::OnDestroy()
 void CLRemoteDesktopDlg::OnMouseMove(UINT nFlags, CPoint point)
 {
 	// TODO: 在此添加消息处理程序代码和/或调用默认值
-	TRACE("鼠标移动x:%d, y:%d\r\n", point.x, point.y);
+	// TRACE("鼠标移动x:%d, y:%d\r\n", point.x, point.y);
 	CDialogEx::OnMouseMove(nFlags, point);
 }

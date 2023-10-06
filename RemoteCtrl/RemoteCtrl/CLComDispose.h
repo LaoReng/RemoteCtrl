@@ -51,7 +51,8 @@ private:
 private:
 	CLNetworkSocket<CTCP> m_sock;         // 网络套接字
 	CLPackage             m_pack;         // 保存接收或发送的包数据
-	char*           m_buffer;       // 接收客户端消息的缓冲区
+	char*                 m_buffer;       // 接收客户端数据的缓冲区
+	int                   m_index;        // 接收客户端数据的缓冲区指针，表示缓冲区中未处理的数据
 	CLSysLockDialog       m_lockDlg;      // 系统锁定窗口对象
 	UINT                  m_lockThreadID; // 系统锁定线程ID
 	HANDLE                m_hLockThread;  // 系统锁定线程句柄

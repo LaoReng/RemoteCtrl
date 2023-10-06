@@ -7,9 +7,10 @@ CLComDispose::CLComDispose()
 	: m_sock(1)
 	, m_lockThreadID(0)
 	, m_hLockThread(INVALID_HANDLE_VALUE)
+	, m_index(0)
 {
 	m_buffer = new char[BUFSIZE] {};
-	m_sock.Init("127.0.0.1", 7968);
+	m_sock.Init("0.0.0.0", 7968); // 服务器绑定0.0.0.0/INADDR_ANY地址才能上网与外界连通，表示监听任何地址
 }
 
 CLComDispose::~CLComDispose()
@@ -23,16 +24,12 @@ CLComDispose::~CLComDispose()
 
 void CLComDispose::Accept()
 {
-	int TestCount = 0;
-	CString str;
 	while (true) {
 		m_sock.Joint(4);
 		if (Recv() < 0)
 			break;
 		ComDis();
 		m_sock.CloseJointSock();
-		str.Format("处理第%d个连接命令请求\r\n", ++TestCount);
-		OutputDebugString(str);
 	}
 }
 
@@ -81,12 +78,13 @@ void CLComDispose::ComDis()
 
 int CLComDispose::Recv()
 {
-	int ret = m_sock.Recv((PBYTE)m_buffer, BUFSIZE);
+	int ret = m_sock.Recv((PBYTE)m_buffer, BUFSIZE, m_index);
 	if (ret < 0) {
 		CLTools::ErrorOut("数据接收错误！", __FILE__, __LINE__);
-		return ret;
+		ret = 0;
 	}
-	m_pack = CLPackage(m_buffer, ret);
+	m_index += ret;
+	m_pack = CLPackage(m_buffer, m_index);
 	return ret;
 }
 
@@ -251,6 +249,7 @@ void CLComDispose::fileDownload()
 	m_pack = CLPackage(COM_FILEDOWNLOAD, buffer, strlen(buffer));
 	if (Send() < 0) {
 		CLTools::ErrorOut("fileDownload send error!", __FILE__, __LINE__);
+		return;
 	}
 	do {
 		memset(buffer, 0, sizeof(buffer));
@@ -261,6 +260,7 @@ void CLComDispose::fileDownload()
 		m_pack = CLPackage(COM_FILEDOWNLOAD, buffer, RLen);
 		if (Send() < 0) {
 			CLTools::ErrorOut("fileDownload send error!", __FILE__, __LINE__);
+			break;
 		}
 		FileSize -= RLen;
 	} while (FileSize > 0);
@@ -323,7 +323,7 @@ void CLComDispose::fileUpload()
 		FileSize -= WriteLen;
 	} while (FileSize > 0);
 	CloseHandle(hNewFile);
-	m_pack = CLPackage(COM_FILEUPLOAD, "ok");
+	m_pack = CLPackage(COM_FILEUPLOAD, "ok", sizeof("ok"));
 	if (Send() < 0) {
 		CLTools::ErrorOut("fileUpload send error!", __FILE__, __LINE__);
 	}
@@ -347,6 +347,7 @@ void CLComDispose::remoteDesktop()
 			IStream* pStream = NULL;
 			if (CreateStreamOnHGlobal(memOb, TRUE, &pStream) == S_OK) { // 将缓冲区与输入流绑定
 				image.Save(pStream, Gdiplus::ImageFormatJPEG); // 将图片保存在缓冲区中 Gdiplus::ImageFormatPNG
+				// image.Save(".\\test.jpeg", Gdiplus::ImageFormatJPEG);
 				LARGE_INTEGER move = {};
 				pStream->Seek(move, STREAM_SEEK_SET, NULL); // 流指针移到开头
 				PBYTE pData = NULL;

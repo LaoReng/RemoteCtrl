@@ -60,8 +60,11 @@ SOCKET CTCP::Joint(int port, const char* ip)
 			Init();
 		m_serAddr = CSockAddr(ip, port);
 		if (connect(m_sock, (sockaddr*)&m_serAddr, (int)m_serAddr.Size())) {
-			CLTools::ErrorOut("客户端连接服务器失败！", __FILE__, __LINE__);
-			return INVALID_SOCKET;
+			int wsaLastErr = WSAGetLastError();
+			if (10056 != wsaLastErr) {
+				TRACE(_T("客户端连接服务器失败！%d\r\n"), wsaLastErr);
+				return INVALID_SOCKET;
+			}
 		}
 		m_jointSock = m_sock;
 	}
@@ -74,7 +77,7 @@ int CTCP::Recv(PBYTE buffer, size_t BufSize, size_t index)
 		CLTools::ErrorOut("传参错误或缓冲区已满！", __FILE__, __LINE__);
 		return -1;
 	}
-	int ret = recv(m_jointSock, (char*)(buffer + index), (int)(BufSize - index), 0);
+	int ret = recv(m_jointSock, (char*)(buffer + index), (int)(BufSize - index), 0); // ret:表示接收到的数据的字节数
 	if (ret < 0) {
 		CLTools::ErrorOut("数据接收失败！", __FILE__, __LINE__);
 	}
