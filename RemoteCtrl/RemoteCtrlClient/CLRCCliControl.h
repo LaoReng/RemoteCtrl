@@ -37,11 +37,6 @@ private:
 	// 销毁类唯一对象指针
 	static void releaseInstance();
 private:
-	CLNetworkSocket<CTCP> m_sock;
-	CString m_SerIp;
-	short m_SerPort;
-	CLPackage m_pack;
-	std::shared_ptr<char*> m_buffer;
 	class Helper {
 	public:
 		Helper() {}
@@ -49,6 +44,11 @@ private:
 			releaseInstance();
 		}
 	};
-	static Helper m_helper;
-	static CLRCCliControl* m_pControl;
+	CLNetworkSocket<CTCP>  m_sock;     // 客户端套接字
+	CString                m_SerIp;    // 服务器IP地址       
+	short                  m_SerPort;  // 服务器端口号
+	CLPackage              m_pack;     // 包类实例化对象
+	std::shared_ptr<char*> m_buffer;   // 接收数据的缓冲区
+	static Helper          m_helper;   // Helper类对象，用于销毁CLRCCliControl单例类
+	static CLRCCliControl* m_pControl; // CLRCCliControl类唯一实例化指针
 };

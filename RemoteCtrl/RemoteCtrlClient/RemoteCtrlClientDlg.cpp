@@ -13,9 +13,7 @@
 #define new DEBUG_NEW
 #endif
 
-
 // 用于应用程序“关于”菜单项的 CAboutDlg 对话框
-
 class CAboutDlg : public CDialogEx
 {
 public:
@@ -35,8 +33,7 @@ protected:
 };
 
 CAboutDlg::CAboutDlg() : CDialogEx(IDD_ABOUTBOX)
-{
-}
+{}
 
 void CAboutDlg::DoDataExchange(CDataExchange* pDX)
 {
@@ -48,8 +45,6 @@ END_MESSAGE_MAP()
 
 
 // CRemoteCtrlClientDlg 对话框
-
-
 
 CRemoteCtrlClientDlg::CRemoteCtrlClientDlg(CWnd* pParent /*=nullptr*/)
 	: CDialogEx(IDD_REMOTECTRLCLIENT_DIALOG, pParent)
@@ -71,7 +66,6 @@ BEGIN_MESSAGE_MAP(CRemoteCtrlClientDlg, CDialogEx)
 	ON_WM_SYSCOMMAND()
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
-	ON_WM_CHAR()
 	ON_BN_CLICKED(IDC_BUT_TESTLINK, &CRemoteCtrlClientDlg::OnBnClickedButTestlink)
 	ON_BN_CLICKED(IDC_BUT_GETDRIVE, &CRemoteCtrlClientDlg::OnBnClickedButGetdrive)
 	ON_NOTIFY(NM_DBLCLK, IDC_TREE_DRIVE, &CRemoteCtrlClientDlg::OnNMDblclkTreeDrive)
@@ -90,9 +84,7 @@ END_MESSAGE_MAP()
 BOOL CRemoteCtrlClientDlg::OnInitDialog()
 {
 	CDialogEx::OnInitDialog();
-
 	// 将“关于...”菜单项添加到系统菜单中。
-
 	// IDM_ABOUTBOX 必须在系统命令范围内。
 	ASSERT((IDM_ABOUTBOX & 0xFFF0) == IDM_ABOUTBOX);
 	ASSERT(IDM_ABOUTBOX < 0xF000);
@@ -115,17 +107,14 @@ BOOL CRemoteCtrlClientDlg::OnInitDialog()
 	//  执行此操作
 	SetIcon(m_hIcon, TRUE);			// 设置大图标
 	SetIcon(m_hIcon, FALSE);		// 设置小图标
-
 	//ShowWindow(SW_MAXIMIZE); // 窗口最大化显示
 	ShowWindow(SW_SHOW);
 	//ShowWindow(SW_MINIMIZE); // 窗口最小化
-
 	// TODO: 在此添加额外的初始化代码
 	/*// 非模态对话框创建
 	m_SockInfo.Create(IDD_DLG_SOCKINFO, this);
 	m_SockInfo.ShowWindow(SW_HIDE); // SW_HIDE 隐藏对话框
 	*/
-
 	SetMenu(&m_menu); // 为窗口设置菜单
 	SetMenuState(); // 设置文件菜单状态
 
@@ -154,9 +143,7 @@ void CRemoteCtrlClientDlg::OnPaint()
 	if (IsIconic())
 	{
 		CPaintDC dc(this); // 用于绘制的设备上下文
-
 		SendMessage(WM_ICONERASEBKGND, reinterpret_cast<WPARAM>(dc.GetSafeHdc()), 0);
-
 		// 使图标在工作区矩形中居中
 		int cxIcon = GetSystemMetrics(SM_CXICON);
 		int cyIcon = GetSystemMetrics(SM_CYICON);
@@ -164,7 +151,6 @@ void CRemoteCtrlClientDlg::OnPaint()
 		GetClientRect(&rect);
 		int x = (rect.Width() - cxIcon + 1) / 2;
 		int y = (rect.Height() - cyIcon + 1) / 2;
-
 		// 绘制图标
 		dc.DrawIcon(x, y, m_hIcon);
 	}
@@ -223,9 +209,7 @@ void CRemoteCtrlClientDlg::SetMenuState(BOOL IsForbidden)
 	if (m_menu.GetMenuState(ID_DOWNLOADFILE, MF_BYCOMMAND) != nEnable) {
 		m_menu.EnableMenuItem(ID_DOWNLOADFILE, nEnable);
 		m_menu.EnableMenuItem(ID_DELETEFILE, nEnable);
-		//m_menu.EnableMenuItem(ID_UPLOADFILE, nEnable);
 	}
-
 }
 
 void CRemoteCtrlClientDlg::UpdateFileList()
@@ -273,13 +257,6 @@ void CRemoteCtrlClientDlg::UpdateFileList()
 	pControl->Close();
 }
 
-void CRemoteCtrlClientDlg::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags)
-{
-	// TODO: 在此添加消息处理程序代码和/或调用默认值
-
-	CDialogEx::OnChar(nChar, nRepCnt, nFlags);
-}
-
 void CRemoteCtrlClientDlg::OnBnClickedButTestlink()
 {
 	CLRCCliControl* pControl = CLRCCliControl::getInstance();
@@ -294,7 +271,7 @@ void CRemoteCtrlClientDlg::OnBnClickedButTestlink()
 		}
 	}
 	// 连接失败
-	MessageBox("连接失败", "失败", MB_OK | MB_ICONERROR);
+	//MessageBox("连接失败", "失败", MB_OK | MB_ICONERROR);
 }
 
 void CRemoteCtrlClientDlg::OnBnClickedButGetdrive()
@@ -384,7 +361,6 @@ void CRemoteCtrlClientDlg::OnNMClickTreeDrive(NMHDR* pNMHDR, LRESULT* pResult)
 void CRemoteCtrlClientDlg::OnNMClickListFileinfo(NMHDR* pNMHDR, LRESULT* pResult)
 {
 	LPNMITEMACTIVATE pNMItemActivate = reinterpret_cast<LPNMITEMACTIVATE>(pNMHDR);
-	// TODO: 在此添加控件通知处理程序代码
 	*pResult = 0;
 	if (m_FileList.GetSelectedCount() <= 0) { // 判断当前是否有选定项
 		SetMenuState();
@@ -409,9 +385,8 @@ void CRemoteCtrlClientDlg::OnSetnetwork()
 
 void CRemoteCtrlClientDlg::OnDownloadfile()
 {
-	// TODO: 在此添加命令处理程序代码
 	CString FileName = m_FileList.GetItemText(m_FileList.GetSelectionMark(), 0); // 获取右键选定的项文本及路径
-	CFileDialog fileDlg(
+	CFileDialog fileDlg( // 创建文件复选框
 		FALSE, NULL, FileName,
 		OFN_DONTADDTORECENT | OFN_EXPLORER |
 		OFN_EXTENSIONDIFFERENT | OFN_NONETWORKBUTTON |
@@ -435,11 +410,9 @@ void CRemoteCtrlClientDlg::OnDownloadfile()
 	INT ret = pControl->Send();
 	if (ret < 0) {
 		CloseHandle(hFile);
-		MessageBox("请检查网络是否连接！", "错误", MB_OK | MB_ICONERROR);
 		CLTools::ErrorOut("数据包发送失败！", __FILE__, __LINE__);
 		return;
 	}
-
 	INT index = pControl->Recv(FALSE, 0);
 	char* endPtr = NULL;
 	long long FileSize = strtoul(pControl->GetPackage().GetData(), &endPtr, 10);
@@ -468,7 +441,6 @@ void CRemoteCtrlClientDlg::OnDownloadfile()
 
 void CRemoteCtrlClientDlg::OnDeletefile()
 {
-	// TODO: 在此添加命令处理程序代码
 	CString FileName;
 	GetSelectedDir(FileName);
 	FileName += m_FileList.GetItemText(m_FileList.GetSelectionMark(), 0); // 获取右键选定的项文本及路径
@@ -506,7 +478,6 @@ void CRemoteCtrlClientDlg::OnUploadfile()
 	if (IDOK != fileDlg.DoModal()) { // 用户点击了取消
 		return;
 	}
-	// TODO: 文件上传功能存在BUG，待修复
 	// 思路：找到要上传文件的绝对路径，然后打开文件，发送给被控端，完成文件上传
 	CString FileName = fileDlg.GetFileName();
 	CString dir = fileDlg.GetFolderPath() + "\\" + FileName;
@@ -523,7 +494,6 @@ void CRemoteCtrlClientDlg::OnUploadfile()
 	INT ret = pControl->Send();
 	if (ret < 0) {
 		CloseHandle(hFile);
-		MessageBox("请检查网络是否连接！", "错误", MB_OK | MB_ICONERROR);
 		CLTools::ErrorOut("数据包发送失败！", __FILE__, __LINE__);
 		return;
 	}
@@ -533,7 +503,6 @@ void CRemoteCtrlClientDlg::OnUploadfile()
 		CLTools::ErrorOut("文件大小获取失败！", __FILE__, __LINE__);
 		pControl->SetPackage(COM_FILEUPLOAD);
 		if (pControl->Send() < 0) {
-			MessageBox("请检查网络是否连接！", "错误", MB_OK | MB_ICONERROR);
 			CLTools::ErrorOut("数据包发送失败！", __FILE__, __LINE__);
 		}
 		return;
@@ -545,7 +514,6 @@ void CRemoteCtrlClientDlg::OnUploadfile()
 	pControl->SetPackage(COM_FILEUPLOAD, buffer);
 	if (pControl->Send() < 0) {
 		CloseHandle(hFile);
-		MessageBox("请检查网络是否连接！", "错误", MB_OK | MB_ICONERROR);
 		CLTools::ErrorOut("数据包发送失败！", __FILE__, __LINE__);
 		return;
 	}
@@ -557,7 +525,6 @@ void CRemoteCtrlClientDlg::OnUploadfile()
 		}
 		pControl->GetPackage() = CLPackage(COM_FILEUPLOAD, buffer, RLen);
 		if (pControl->Send() < 0) {
-			MessageBox("请检查网络是否连接！", "错误", MB_OK | MB_ICONERROR);
 			CLTools::ErrorOut("数据包发送失败！", __FILE__, __LINE__);
 			break;
 		}
@@ -580,6 +547,5 @@ void CRemoteCtrlClientDlg::OnUploadfile()
 
 void CRemoteCtrlClientDlg::OnBnClickedButRemdesktop()
 {
-	// TODO: 在此添加控件通知处理程序代码
-	m_RemDesktop.DoModal();
+	m_RemDesktop.DoModal(); // 启动远程桌面对话框
 }

@@ -82,7 +82,7 @@ CLPackage::CLPackage(char* buffer, int& size)
 			memcpy(*m_PData, buffer + index, m_PDataSize);
 		}
 		else {
-			//TODO:把这这个数据清理掉，有错误
+			//TODO:把这个数据清理掉，有错误
 			CLTools::ErrorOut("校验和不一致，数据有误！", __FILE__, __LINE__);
 		}
 		index += m_PDataSize;
@@ -243,7 +243,6 @@ void CLPackage::SetPAdd()
 const char* CLPackage::Value2BinStr(unsigned int value, unsigned char ByteSize)
 {
 	const int BitSize = ByteSize * 8;
-
 	char buf[125] = "";
 	_ultoa(value, buf, 2);
 	size_t size = strlen(buf), index = 0;

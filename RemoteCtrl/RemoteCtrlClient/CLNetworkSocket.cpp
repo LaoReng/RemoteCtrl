@@ -14,6 +14,7 @@ CTCP::CTCP(int isServer)
 		return;
 	}
 }
+
 CTCP::~CTCP()
 {
 	CloseJointSock();
@@ -63,6 +64,7 @@ SOCKET CTCP::Joint(int port, const char* ip)
 			int wsaLastErr = WSAGetLastError();
 			if (10056 != wsaLastErr) {
 				TRACE(_T("客户端连接服务器失败！%d\r\n"), wsaLastErr);
+				MessageBox(NULL, "请检查网络是否连接！", "错误", MB_OK | MB_ICONERROR);
 				return INVALID_SOCKET;
 			}
 		}

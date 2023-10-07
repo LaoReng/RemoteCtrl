@@ -9,22 +9,18 @@
 // CRemoteCtrlClientDlg 对话框
 class CRemoteCtrlClientDlg : public CDialogEx
 {
-// 构造
+	// 构造
 public:
 	CRemoteCtrlClientDlg(CWnd* pParent = nullptr);	// 标准构造函数
-
 // 对话框数据
 #ifdef AFX_DESIGN_TIME
 	enum { IDD = IDD_REMOTECTRLCLIENT_DIALOG };
 #endif
-
-	protected:
+protected:
 	virtual void DoDataExchange(CDataExchange* pDX);	// DDX/DDV 支持
-
-
 private:
 	// 网络套接字信息Dlg
-	CLSockInfoDlg m_SockInfo; 
+	CLSockInfoDlg m_SockInfo;
 	// 目录显示控件
 	CTreeCtrl m_TreeDrive;
 	// 文件列表控件
@@ -33,10 +29,9 @@ private:
 	CMenu m_menu;
 	// 远程桌面Dlg
 	CLRemoteDesktopDlg m_RemDesktop;
-// 实现
+	// 实现
 protected:
 	HICON m_hIcon;
-
 	// 生成的消息映射函数
 	virtual BOOL OnInitDialog();
 	afx_msg void OnSysCommand(UINT nID, LPARAM lParam);
@@ -54,7 +49,6 @@ private:
 	// 更新文件列表控件
 	void UpdateFileList();
 public:
-	afx_msg void OnChar(UINT nChar, UINT nRepCnt, UINT nFlags);
 	// 点击测试连接按钮，响应函数
 	afx_msg void OnBnClickedButTestlink();
 	// 点击卷获取按钮，响应函数

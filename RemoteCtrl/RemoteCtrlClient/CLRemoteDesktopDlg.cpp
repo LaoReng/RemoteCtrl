@@ -18,8 +18,7 @@ CLRemoteDesktopDlg::CLRemoteDesktopDlg(CWnd* pParent /*=nullptr*/)
 {}
 
 CLRemoteDesktopDlg::~CLRemoteDesktopDlg()
-{
-}
+{}
 
 void CLRemoteDesktopDlg::DoDataExchange(CDataExchange* pDX)
 {
@@ -27,6 +26,7 @@ void CLRemoteDesktopDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_STA_DESKTOP, m_DesktopControl);
 	DDX_Control(pDX, IDC_BUT_LOCK, m_LockBut);
 }
+
 BOOL CLRemoteDesktopDlg::OnInitDialog()
 {
 	CDialogEx::OnInitDialog();
@@ -36,11 +36,15 @@ BOOL CLRemoteDesktopDlg::OnInitDialog()
 	m_DesktopControl.ScreenToClient(&rect);
 	m_DesktopControl.ModifyStyle(0xF, SS_BITMAP | SS_CENTERIMAGE);
 	m_image.Create(rect.right - rect.left, rect.bottom - rect.top, GetDeviceCaps(::GetDC(NULL), BITSPIXEL));
+	m_pControl->SetPackage(COM_NULL);
+	if (m_pControl->Send() < 0) {
+		CLTools::ErrorOut("数据包发送失败！", __FILE__, __LINE__);
+		return FALSE;
+	}
+	m_pControl->Close();
 	SetTimer(TIMERID1, 500, NULL); // 设置定时器
-	
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
 }
-
 
 BEGIN_MESSAGE_MAP(CLRemoteDesktopDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_BUT_LOCK, &CLRemoteDesktopDlg::OnBnClickedButLock)
@@ -49,9 +53,7 @@ BEGIN_MESSAGE_MAP(CLRemoteDesktopDlg, CDialogEx)
 	ON_WM_MOUSEMOVE()
 END_MESSAGE_MAP()
 
-
 // CLRemoteDesktopDlg 消息处理程序
-
 
 void CLRemoteDesktopDlg::OnBnClickedButLock()
 {
@@ -61,7 +63,6 @@ void CLRemoteDesktopDlg::OnBnClickedButLock()
 		str = "解锁";
 		m_pControl->SetPackage(COM_SYSTEMLOCK);
 		if (m_pControl->Send() < 0) {
-			MessageBox("请检查网络是否连接！", "错误", MB_OK | MB_ICONERROR);
 			CLTools::ErrorOut("数据包发送失败！", __FILE__, __LINE__);
 			return;
 		}
@@ -78,7 +79,6 @@ void CLRemoteDesktopDlg::OnBnClickedButLock()
 		str = "锁定";
 		m_pControl->SetPackage(COM_SYSTEMUNLOCK);
 		if (m_pControl->Send() < 0) {
-			MessageBox("请检查网络是否连接！", "错误", MB_OK | MB_ICONERROR);
 			CLTools::ErrorOut("数据包发送失败！", __FILE__, __LINE__);
 			return;
 		}
@@ -94,7 +94,6 @@ void CLRemoteDesktopDlg::OnBnClickedButLock()
 	m_LockBut.SetWindowText(str);
 }
 
-
 void CLRemoteDesktopDlg::OnTimer(UINT_PTR nIDEvent)
 {
 	if (nIDEvent == TIMERID1) {
@@ -102,9 +101,8 @@ void CLRemoteDesktopDlg::OnTimer(UINT_PTR nIDEvent)
 		m_pControl->SetPackage(COM_REMOTEDESKTOP);
 		INT ret = m_pControl->Send();
 		if (ret < 0) {
-			MessageBox("请检查网络是否连接！", "错误", MB_OK | MB_ICONERROR);
 			CLTools::ErrorOut("数据包发送失败！", __FILE__, __LINE__);
-			return;
+			exit(0);
 		}
 		m_index = 0;
 		HGDIOBJ memOb = GlobalAlloc(GMEM_MOVEABLE, 0);
@@ -132,11 +130,9 @@ void CLRemoteDesktopDlg::OnTimer(UINT_PTR nIDEvent)
 			, 0, 0, image.GetWidth(), image.GetHeight()
 		);
 		m_image.ReleaseDC();
-		//image.Save(".\\test.jpeg", Gdiplus::ImageFormatJPEG);
 		m_DesktopControl.SetBitmap(HBITMAP(m_image));
 		GlobalFree(memOb);
 		m_pControl->Close();
-		
 	}
 end:
 	CDialogEx::OnTimer(nIDEvent);
@@ -147,13 +143,12 @@ void CLRemoteDesktopDlg::OnDestroy()
 {
 	CDialogEx::OnDestroy();
 	KillTimer(TIMERID1);
-	
+	m_image.Destroy();
 }
 
 
 void CLRemoteDesktopDlg::OnMouseMove(UINT nFlags, CPoint point)
 {
-	// TODO: 在此添加消息处理程序代码和/或调用默认值
 	// TRACE("鼠标移动x:%d, y:%d\r\n", point.x, point.y);
 	CDialogEx::OnMouseMove(nFlags, point);
 }

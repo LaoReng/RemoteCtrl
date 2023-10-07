@@ -10,22 +10,17 @@
 
 #include "resource.h"		// 主符号
 
-
 // CRemoteCtrlClientApp:
 // 有关此类的实现，请参阅 RemoteCtrlClient.cpp
 //
-
 class CRemoteCtrlClientApp : public CWinApp
 {
 public:
 	CRemoteCtrlClientApp();
-
 // 重写
 public:
 	virtual BOOL InitInstance();
-
 // 实现
-
 	DECLARE_MESSAGE_MAP()
 };
 

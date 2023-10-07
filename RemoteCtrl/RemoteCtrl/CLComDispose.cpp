@@ -37,6 +37,7 @@ void CLComDispose::ComDis()
 {
 	switch (m_pack.GetCmd()) {
 	case COM_NULL:
+		SnifferPacket();
 		break;
 	case COM_TESTCONNECT:
 		testConnect();
@@ -96,6 +97,14 @@ int CLComDispose::Send()
 		return ret;
 	}
 	return ret;
+}
+
+void CLComDispose::SnifferPacket()
+{
+	m_pack = CLPackage(COM_NULL, "ok", sizeof("ok"));
+	if (Send() < 0) {
+		CLTools::ErrorOut("SnifferPacket send error!", __FILE__, __LINE__);
+	}
 }
 
 void CLComDispose::testConnect()
@@ -177,7 +186,7 @@ void CLComDispose::getFile(bool isOnlyGetFile)
 	int count = 0;
 	int cun = 0;
 	FILEINFO _fileinfo;
-	short cmd = short(isOnlyGetFile ? COM_GETFILES : COM_GETFILE);
+	short cmd = isOnlyGetFile ? (short)COM_GETFILES : (short)COM_GETFILE;
 	do {
 		if (isOnlyGetFile) {
 			if (!(fileInfo.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {
@@ -215,9 +224,6 @@ void CLComDispose::getFile(bool isOnlyGetFile)
 	if (Send() < 0) {
 		CLTools::ErrorOut("getFile send error!", __FILE__, __LINE__);
 	}
-	CString str;
-	str.Format("一个%d个文件和文件夹", cun);
-	CLTools::ErrorOut(str, __FILE__, __LINE__);
 	Sleep(10);
 }
 
@@ -283,7 +289,6 @@ void CLComDispose::fileDelete()
 
 void CLComDispose::fileUpload()
 {
-	//TODO:这块还有一个问题：需要创建一个文件夹存放控制端发过来的文件
 	HANDLE hNewFile = CreateFile(m_pack.GetData(), GENERIC_ALL, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 	if (hNewFile == INVALID_HANDLE_VALUE) {
 		CLTools::ErrorOut("文件创建失败！", __FILE__, __LINE__);
@@ -353,6 +358,7 @@ void CLComDispose::remoteDesktop()
 				PBYTE pData = NULL;
 				if (pData = (PBYTE)GlobalLock(memOb)) { // 锁定缓冲区，并获取缓冲区数据的首地址
 					long long DataSize = (long long)GlobalSize(memOb); // 获取缓冲区数据大小
+					TRACE(_T("DataSize = %lld\r\n"), DataSize);
 					int index = 0, pDataSize;
 					while (DataSize > 0) {
 						pDataSize = (int)(DataSize - 1000 < 0 ? DataSize : 1000);

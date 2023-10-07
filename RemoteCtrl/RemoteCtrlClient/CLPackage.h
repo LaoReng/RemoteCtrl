@@ -23,6 +23,7 @@ enum {
 #pragma pack(push,1) // 设置内存对齐方式，将对齐系数进栈
 
 #define FILESIZE 80
+// 文件信息类
 typedef struct fileInfo
 {
 	char*       m_fileName;           // 文件名
@@ -56,7 +57,7 @@ typedef struct fileInfo
 	}
 }FILEINFO, * PFILEINFO;
 
-
+// 数据包类
 class CLPackage
 {
 public:

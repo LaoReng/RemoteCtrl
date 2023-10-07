@@ -11,7 +11,6 @@
 #define new DEBUG_NEW
 #endif
 
-
 // CRemoteCtrlClientApp
 
 BEGIN_MESSAGE_MAP(CRemoteCtrlClientApp, CWinApp)
@@ -20,24 +19,18 @@ END_MESSAGE_MAP()
 
 
 // CRemoteCtrlClientApp 构造
-
 CRemoteCtrlClientApp::CRemoteCtrlClientApp()
 {
 	// 支持重新启动管理器
 	m_dwRestartManagerSupportFlags = AFX_RESTART_MANAGER_SUPPORT_RESTART;
-
 	// TODO: 在此处添加构造代码，
 	// 将所有重要的初始化放置在 InitInstance 中
 }
 
-
 // 唯一的 CRemoteCtrlClientApp 对象
-
 CRemoteCtrlClientApp theApp;
 
-
 // CRemoteCtrlClientApp 初始化
-
 BOOL CRemoteCtrlClientApp::InitInstance()
 {
 	// 如果一个运行在 Windows XP 上的应用程序清单指定要
@@ -49,10 +42,7 @@ BOOL CRemoteCtrlClientApp::InitInstance()
 	// 公共控件类。
 	InitCtrls.dwICC = ICC_WIN95_CLASSES;
 	InitCommonControlsEx(&InitCtrls);
-
 	CWinApp::InitInstance();
-
-
 	AfxEnableControlContainer();
 
 	// 创建 shell 管理器，以防对话框包含

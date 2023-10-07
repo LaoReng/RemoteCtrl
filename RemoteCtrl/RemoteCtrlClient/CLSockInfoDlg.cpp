@@ -17,13 +17,10 @@ IMPLEMENT_DYNAMIC(CLSockInfoDlg, CDialogEx)
 
 CLSockInfoDlg::CLSockInfoDlg(CWnd* pParent /*=nullptr*/)
 	: CDialogEx(IDD_DLG_SOCKINFO, pParent)
-{
-	
-}
+{}
 
 CLSockInfoDlg::~CLSockInfoDlg()
-{
-}
+{}
 
 CString CLSockInfoDlg::GetSockIp()
 {	
@@ -61,10 +58,8 @@ END_MESSAGE_MAP()
 
 // CLSockInfoDlg 消息处理程序
 
-
 void CLSockInfoDlg::OnBnClickedOk()
 {
-	// TODO: 在此添加控件通知处理程序代码
 	m_SockIp.GetAddress(nIpld0, nIpld1, nIpld2, nIpld3);
 	m_SockPort.GetWindowTextA(m_port);
 	CDialogEx::OnOK();

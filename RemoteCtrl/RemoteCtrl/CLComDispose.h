@@ -20,6 +20,8 @@ public:
 	int Recv();
 	// 发送数据
 	int Send();
+	// 嗅探包响应函数
+	void SnifferPacket();
 	// 测试连接响应函数
 	void testConnect();
 	// 用户登录响应函数
